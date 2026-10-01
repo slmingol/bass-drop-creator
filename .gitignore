@@ -1,0 +1,4 @@
+*.wav
+orig_transcript.txt
+node_modules/
+.DS_Store

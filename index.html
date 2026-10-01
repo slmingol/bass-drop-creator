@@ -491,6 +491,103 @@ input[type=range]::-moz-range-track {
 }
 .btn-generate:hover:not(:disabled) { opacity: 0.88; }
 
+/* ─── Preset bar ───────────────────────────────────────────────── */
+.preset-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.preset-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.preset-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--fg);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+  user-select: none;
+}
+.preset-chip:hover { border-color: var(--sub); }
+.preset-chip.active { border-color: var(--sub); background: color-mix(in srgb, var(--sub) 14%, var(--card)); color: var(--sub); }
+.preset-chip.factory { font-style: italic; }
+.del-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 0 0 3px;
+  font-size: 13px;
+  line-height: 1;
+}
+.del-btn:hover { color: var(--punch); }
+.preset-save {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.preset-name-input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  padding: 5px 10px;
+  outline: none;
+  width: 130px;
+  transition: border-color 0.15s;
+}
+.preset-name-input:focus { border-color: var(--sub); }
+.preset-name-input::placeholder { color: var(--muted); }
+.btn-save-preset {
+  padding: 5px 12px;
+  background: color-mix(in srgb, var(--sub) 15%, var(--card));
+  border: 1px solid var(--sub);
+  border-radius: 6px;
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-save-preset:hover { background: color-mix(in srgb, var(--sub) 28%, var(--card)); }
+
+/* param select (sample rate) */
+.param-select {
+  width: 100%;
+  margin-top: 4px;
+}
+
 /* ─── Hero banner ──────────────────────────────────────────────── */
 .hero-banner {
   position: relative;
@@ -580,6 +677,16 @@ input[type=range]::-moz-range-track {
       <span class="hero-chip bodyc">Body</span>
       <span class="hero-chip master">Master</span>
     </div>
+  </div>
+</div>
+
+<!-- Preset bar -->
+<div class="preset-bar">
+  <span class="preset-label">Presets</span>
+  <div class="preset-chips" id="preset-chips"></div>
+  <div class="preset-save">
+    <input class="preset-name-input" type="text" id="preset-name-input" placeholder="Name new preset…" maxlength="30">
+    <button class="btn-save-preset" id="btn-save-preset">Save</button>
   </div>
 </div>
 
@@ -749,9 +856,12 @@ const LAYERS = [
   {
     id: 'master', label: 'Master', desc: 'Mix → normalize → saturate → clip', accent: 'var(--master)',
     params: [
-      { id: 'duration', label: 'Duration', unit: 's',  min: 1,   max: 12, step: 0.5,  def: 6.0, hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
-      { id: 'drive',    label: 'Drive',    unit: '',   min: 1,   max: 5,  step: 0.05, def: 2.2, hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
-      { id: 'gain',     label: 'Gain',     unit: '',   min: 0.1, max: 2,  step: 0.05, def: 1.0, hint: 'Post-saturation output trim. Values >1.0 push into hard clipping. Usually leave at 1.0.' },
+      { id: 'duration',   label: 'Duration',    unit: 's', min: 1,   max: 12, step: 0.5,  def: 6.0,   hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
+      { id: 'drive',      label: 'Drive',       unit: '',  min: 1,   max: 5,  step: 0.05, def: 2.2,   hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
+      { id: 'gain',       label: 'Gain',        unit: '',  min: 0.1, max: 2,  step: 0.05, def: 1.0,   hint: 'Post-saturation output trim. Values >1.0 push into hard clipping. Usually leave at 1.0.' },
+      { id: 'sampleRate', label: 'Sample Rate', type: 'select',
+        options: [{value: 44100, label: '44.1 kHz'}, {value: 48000, label: '48 kHz'}],
+        def: 44100, hint: 'Use 48 kHz for video workflows and MainStage. Slightly larger file.' },
     ],
   },
 ];
@@ -778,11 +888,12 @@ function loadState() {
       const saved = JSON.parse(raw);
       allParams.forEach(p => {
         if (saved[p.id] !== undefined) {
-          const val = Math.max(p.min, Math.min(p.max, Number(saved[p.id])));
+          const raw = saved[p.id];
+          const val = p.type === 'select' ? Number(raw) : Math.max(p.min, Math.min(p.max, Number(raw)));
           state[p.id] = val;
           const sl = document.getElementById(`sl-${p.id}`);
           const ve = document.getElementById(`val-${p.id}`);
-          if (sl) { sl.value = val; updateSlider(sl, p); }
+          if (sl) { sl.value = val; if (p.type !== 'select') updateSlider(sl, p); }
           if (ve) ve.textContent = fmt(val, p);
         }
       });
@@ -800,8 +911,14 @@ function loadState() {
 const grid = document.getElementById('layers-grid');
 
 function fmt(val, p) {
+  if (p.type === 'select') return p.options.find(o => o.value == val)?.label || String(val);
   const s = p.step < 0.1 ? val.toFixed(2) : p.step < 1 ? val.toFixed(1) : val.toFixed(0);
   return p.unit ? `${s} ${p.unit}` : s;
+}
+
+function updateHeaderNote() {
+  const sr = state.sampleRate || 44100;
+  document.getElementById('header-note').textContent = `${sr === 44100 ? '44.1' : '48'} kHz · 16-bit · mono`;
 }
 
 function updateSlider(slider, p) {
@@ -840,27 +957,48 @@ LAYERS.forEach(layer => {
     hdr.appendChild(name);
     hdr.appendChild(valEl);
 
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.id = `sl-${p.id}`;
-    slider.min = p.min;
-    slider.max = p.max;
-    slider.step = p.step;
-    slider.value = p.def;
-    updateSlider(slider, p);
-
-    if (p.hint) slider.title = p.hint;
-
-    slider.addEventListener('input', () => {
-      const val = parseFloat(slider.value);
-      state[p.id] = val;
-      valEl.textContent = fmt(val, p);
-      updateSlider(slider, p);
-      saveState();
-    });
+    let inputEl;
+    if (p.type === 'select') {
+      inputEl = document.createElement('select');
+      inputEl.id = `sl-${p.id}`;
+      inputEl.className = 'param-select';
+      if (p.hint) inputEl.title = p.hint;
+      p.options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        inputEl.appendChild(o);
+      });
+      inputEl.value = state[p.id];
+      inputEl.addEventListener('change', () => {
+        const val = parseInt(inputEl.value);
+        state[p.id] = val;
+        valEl.textContent = fmt(val, p);
+        lastResult = null;
+        saveState();
+        updateHeaderNote();
+      });
+    } else {
+      inputEl = document.createElement('input');
+      inputEl.type = 'range';
+      inputEl.id = `sl-${p.id}`;
+      inputEl.min = p.min;
+      inputEl.max = p.max;
+      inputEl.step = p.step;
+      inputEl.value = state[p.id];
+      updateSlider(inputEl, p);
+      if (p.hint) inputEl.title = p.hint;
+      inputEl.addEventListener('input', () => {
+        const val = parseFloat(inputEl.value);
+        state[p.id] = val;
+        valEl.textContent = fmt(val, p);
+        updateSlider(inputEl, p);
+        saveState();
+      });
+    }
 
     row.appendChild(hdr);
-    row.appendChild(slider);
+    row.appendChild(inputEl);
 
     if (p.hint) {
       const hint = document.createElement('div');
@@ -976,7 +1114,7 @@ function biquadLP(input, cutoff, sr) {
 
 // ─── Core synthesis ───────────────────────────────────────────────
 function synthesize(p) {
-  const SR = 44100;
+  const SR = p.sampleRate || 44100;
   const N  = Math.ceil(SR * p.duration);
   const dt = 1 / SR;
   const buf = new Float64Array(N);
@@ -1241,9 +1379,121 @@ document.getElementById('btn-generate').addEventListener('click', () => {
 });
 
 // Invalidate cached result when any param changes
-document.querySelectorAll('input[type=range]').forEach(sl =>
-  sl.addEventListener('input', () => { lastResult = null; })
+document.querySelectorAll('input[type=range], .param-select').forEach(el =>
+  el.addEventListener('input', () => { lastResult = null; })
 );
+
+// ─── Factory presets ──────────────────────────────────────────────
+const FACTORY_PRESETS = [
+  {
+    name: 'Default', factory: true, noteIdx: 10, noteOct: 1,
+    params: { subFreq: 40, subDecay: 1.0, subVol: 0.9, sweepStart: 160, sweepEnd: 35, sweepTime: 2.5, sweepDecay: 0.9, sweepVol: 1.0, punchDecay: 3.5, punchVol: 0.4, rumbleCutoff: 70, rumbleDecay: 1.2, rumbleVol: 0.25, bodyFreq: 90, bodyDecay: 2.0, bodyVol: 0.35, duration: 6.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Deep Sub', factory: true, noteIdx: 7, noteOct: 1,
+    params: { subFreq: 49, subDecay: 0.55, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 3.5, sweepDecay: 0.55, sweepVol: 0.95, punchDecay: 5.0, punchVol: 0.2, rumbleCutoff: 45, rumbleDecay: 0.9, rumbleVol: 0.3, bodyFreq: 74, bodyDecay: 2.5, bodyVol: 0.22, duration: 8.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Heavy Club', factory: true, noteIdx: 10, noteOct: 1,
+    params: { subFreq: 58, subDecay: 0.85, subVol: 0.88, sweepStart: 232, sweepEnd: 58, sweepTime: 1.8, sweepDecay: 0.75, sweepVol: 1.0, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 87, bodyDecay: 1.5, bodyVol: 0.38, duration: 5.0, drive: 3.8, gain: 0.9, sampleRate: 44100 },
+  },
+  {
+    name: 'Clean Sub', factory: true, noteIdx: 0, noteOct: 2,
+    params: { subFreq: 65.5, subDecay: 1.0, subVol: 0.85, sweepStart: 262, sweepEnd: 65.5, sweepTime: 2.2, sweepDecay: 1.0, sweepVol: 0.88, punchDecay: 4.5, punchVol: 0.22, rumbleCutoff: 50, rumbleDecay: 1.5, rumbleVol: 0.12, bodyFreq: 98, bodyDecay: 2.2, bodyVol: 0.28, duration: 6.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Tight Punch', factory: true, noteIdx: 4, noteOct: 2,
+    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.78, sweepStart: 330, sweepEnd: 82.5, sweepTime: 1.1, sweepDecay: 1.5, sweepVol: 0.85, punchDecay: 6.5, punchVol: 0.58, rumbleCutoff: 105, rumbleDecay: 2.0, rumbleVol: 0.18, bodyFreq: 124, bodyDecay: 3.0, bodyVol: 0.3, duration: 4.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+  },
+];
+
+function getUserPresets() {
+  try { return JSON.parse(localStorage.getItem('bdc-user-presets') || '[]'); } catch(e) { return []; }
+}
+function saveUserPresets(arr) {
+  try { localStorage.setItem('bdc-user-presets', JSON.stringify(arr)); } catch(e) {}
+}
+
+function applyPreset(preset) {
+  const allParams = LAYERS.flatMap(l => l.params);
+  allParams.forEach(p => {
+    if (preset.params[p.id] !== undefined) {
+      const raw = preset.params[p.id];
+      const val = p.type === 'select' ? Number(raw) : Math.max(p.min, Math.min(p.max, Number(raw)));
+      state[p.id] = val;
+      const sl = document.getElementById(`sl-${p.id}`);
+      const ve = document.getElementById(`val-${p.id}`);
+      if (sl) { sl.value = val; if (p.type !== 'select') updateSlider(sl, p); }
+      if (ve) ve.textContent = fmt(val, p);
+    }
+  });
+  if (preset.noteIdx !== undefined) {
+    document.getElementById('sel-note').value = preset.noteIdx;
+    document.getElementById('sel-oct').value  = preset.noteOct || 1;
+    updateNoteDisplay();
+  }
+  lastResult = null;
+  saveState();
+  updateHeaderNote();
+}
+
+function renderPresets() {
+  const container = document.getElementById('preset-chips');
+  if (!container) return;
+  container.innerHTML = '';
+  const userPresets = getUserPresets();
+  [...FACTORY_PRESETS, ...userPresets].forEach((preset, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'preset-chip' + (preset.factory ? ' factory' : '');
+    chip.dataset.idx = idx;
+
+    const label = document.createElement('span');
+    label.textContent = preset.name;
+    chip.appendChild(label);
+
+    if (!preset.factory) {
+      const del = document.createElement('button');
+      del.className = 'del-btn';
+      del.textContent = '×';
+      del.title = 'Delete';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        const up = getUserPresets();
+        up.splice(idx - FACTORY_PRESETS.length, 1);
+        saveUserPresets(up);
+        renderPresets();
+      });
+      chip.appendChild(del);
+    }
+
+    chip.addEventListener('click', () => {
+      container.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      applyPreset(preset);
+    });
+
+    container.appendChild(chip);
+  });
+}
+
+document.getElementById('btn-save-preset').addEventListener('click', () => {
+  const input = document.getElementById('preset-name-input');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const preset = {
+    name,
+    noteIdx: parseInt(document.getElementById('sel-note').value),
+    noteOct: parseInt(document.getElementById('sel-oct').value),
+    params: { ...state },
+  };
+  const up = getUserPresets();
+  const existing = up.findIndex(p => p.name === name);
+  if (existing >= 0) up[existing] = preset; else up.push(preset);
+  saveUserPresets(up);
+  input.value = '';
+  renderPresets();
+  setStatus(`Saved preset "${name}"`, 'ok');
+});
 
 // ─── Hero banner canvas ────────────────────────────────────────────
 function drawHero(clipFrac) {
@@ -1356,6 +1606,9 @@ function drawHero(clipFrac) {
 })();
 
 window.addEventListener('resize', () => drawHero(1));
+
+renderPresets();
+updateHeaderNote();
 
 // ─── Theme toggle ─────────────────────────────────────────────────
 const btnTheme = document.getElementById('btn-theme');
