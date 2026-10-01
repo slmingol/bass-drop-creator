@@ -475,6 +475,65 @@ input[type=range]::-moz-range-track {
   color: #fff;
 }
 .btn-generate:hover:not(:disabled) { opacity: 0.88; }
+
+/* ─── Hero banner ──────────────────────────────────────────────── */
+.hero-banner {
+  position: relative;
+  margin-block: 14px;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  height: 140px;
+}
+@media (max-width: 500px) { .hero-banner { height: 108px; } }
+
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.hero-tagline {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.hero-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.hero-chip {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.hero-chip.sub    { color: var(--sub);    background: color-mix(in srgb, var(--sub)    14%, transparent); border-color: color-mix(in srgb, var(--sub)    35%, transparent); }
+.hero-chip.sweep  { color: var(--sweep);  background: color-mix(in srgb, var(--sweep)  14%, transparent); border-color: color-mix(in srgb, var(--sweep)  35%, transparent); }
+.hero-chip.punch  { color: var(--punch);  background: color-mix(in srgb, var(--punch)  14%, transparent); border-color: color-mix(in srgb, var(--punch)  35%, transparent); }
+.hero-chip.rumble { color: var(--rumble); background: color-mix(in srgb, var(--rumble) 14%, transparent); border-color: color-mix(in srgb, var(--rumble) 35%, transparent); }
+.hero-chip.bodyc  { color: var(--body-c); background: color-mix(in srgb, var(--body-c) 14%, transparent); border-color: color-mix(in srgb, var(--body-c) 35%, transparent); }
+.hero-chip.master { color: var(--master); background: color-mix(in srgb, var(--master) 14%, transparent); border-color: color-mix(in srgb, var(--master) 35%, transparent); }
 </style>
 
 <header>
@@ -487,6 +546,22 @@ input[type=range]::-moz-range-track {
     <button class="btn-theme" id="btn-theme" title="Toggle theme">☾</button>
   </div>
 </header>
+
+<!-- Hero banner -->
+<div class="hero-banner">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay">
+    <div class="hero-tagline">5-layer browser synthesizer · note-aware · 44.1 kHz WAV export · zero dependencies</div>
+    <div class="hero-chips">
+      <span class="hero-chip sub">Sub</span>
+      <span class="hero-chip sweep">Sweep</span>
+      <span class="hero-chip punch">Punch</span>
+      <span class="hero-chip rumble">Rumble</span>
+      <span class="hero-chip bodyc">Body</span>
+      <span class="hero-chip master">Master</span>
+    </div>
+  </div>
+</div>
 
 <!-- Note picker -->
 <div class="note-section">
@@ -1150,6 +1225,118 @@ document.querySelectorAll('input[type=range]').forEach(sl =>
   sl.addEventListener('input', () => { lastResult = null; })
 );
 
+// ─── Hero banner canvas ────────────────────────────────────────────
+function drawHero(clipFrac) {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  if (W === 0 || H === 0) return;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cs = getComputedStyle(document.documentElement);
+  const bg  = cs.getPropertyValue('--bg').trim()     || '#08080d';
+  const bdr = cs.getPropertyValue('--border').trim() || '#1f1f30';
+
+  // Background
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid
+  ctx.strokeStyle = bdr;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.6;
+  const gx = 80;
+  for (let x = gx; x < W; x += gx) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  const gy = 40;
+  for (let y = gy; y < H; y += gy) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+
+  // Waveform math
+  const cf      = Math.max(0, Math.min(1, clipFrac ?? 1));
+  const clipW   = W * cf;
+  const centerY = H * 0.52;
+  const amp0    = H * 0.40;
+  const omega   = (2 * Math.PI * 14) / W;  // 14 visible cycles
+  const decay   = W * 0.32;
+
+  // Build gradient
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0,    '#b09eff');
+  grad.addColorStop(0.35, '#5db8ff');
+  grad.addColorStop(0.65, '#2de0c4');
+  grad.addColorStop(1,    '#52e06a');
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, clipW, H);
+  ctx.clip();
+
+  // Fill under waveform (gradient, low opacity)
+  ctx.beginPath();
+  ctx.moveTo(0, centerY);
+  for (let x = 0; x <= W; x++) {
+    const a = amp0 * Math.exp(-x / decay);
+    ctx.lineTo(x, centerY - a * Math.sin(omega * x));
+  }
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  const fillGrad = ctx.createLinearGradient(0, 0, W, 0);
+  fillGrad.addColorStop(0,    'rgba(176,158,255,0.10)');
+  fillGrad.addColorStop(0.5,  'rgba(45,224,196,0.06)');
+  fillGrad.addColorStop(1,    'rgba(82,224,106,0.02)');
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // Center line
+  ctx.strokeStyle = bdr;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.4;
+  ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(W, centerY); ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Glow pass (thick, transparent)
+  ctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const a = amp0 * Math.exp(-x / decay);
+    const y = centerY - a * Math.sin(omega * x);
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 7;
+  ctx.globalAlpha = 0.18;
+  ctx.stroke();
+
+  // Crisp pass
+  ctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const a = amp0 * Math.exp(-x / decay);
+    const y = centerY - a * Math.sin(omega * x);
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 1;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+(function animateHero() {
+  let frac = 0;
+  function frame() {
+    frac = Math.min(1, frac + 0.018);
+    drawHero(frac);
+    if (frac < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+window.addEventListener('resize', () => drawHero(1));
+
 // ─── Theme toggle ─────────────────────────────────────────────────
 const btnTheme = document.getElementById('btn-theme');
 function syncThemeIcon() {
@@ -1163,7 +1350,7 @@ btnTheme.addEventListener('click', () => {
   document.documentElement.setAttribute('data-theme', next);
   syncThemeIcon();
   try { localStorage.setItem('bdc-theme', next); } catch(e) {}
-  // Redraw waveform with new theme bg
+  drawHero(1);
   drawWaveform(lastResult ? lastResult.float : null);
 });
 </script>
