@@ -4,25 +4,21 @@
       <stop offset="0%" stop-color="#08080d"/>
       <stop offset="100%" stop-color="#12121e"/>
     </linearGradient>
-    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="1200">
+    <linearGradient id="wg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1200" y2="0">
       <stop offset="0%"   stop-color="#b09eff"/>
       <stop offset="30%"  stop-color="#5db8ff"/>
       <stop offset="60%"  stop-color="#2de0c4"/>
       <stop offset="100%" stop-color="#52e06a"/>
     </linearGradient>
-    <linearGradient id="wgfill" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="1200">
+    <linearGradient id="wgfill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1200" y2="0">
       <stop offset="0%"   stop-color="#b09eff" stop-opacity="0.15"/>
       <stop offset="50%"  stop-color="#2de0c4" stop-opacity="0.08"/>
       <stop offset="100%" stop-color="#52e06a" stop-opacity="0.03"/>
     </linearGradient>
-    <linearGradient id="title-grad" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="700">
+    <linearGradient id="title-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="700" y2="0">
       <stop offset="0%"  stop-color="#ffffff"/>
       <stop offset="100%" stop-color="#c8c8f0"/>
     </linearGradient>
-    <filter id="glow" x="-5%" y="-50%" width="110%" height="200%">
-      <feGaussianBlur stdDeviation="2.5" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
 
   <!-- Background -->
@@ -62,7 +58,7 @@
   <!-- Waveform crisp line -->
   <path
     d="M 0,270 Q 20,156.8 40,270 Q 60,371 80,270 Q 100,180.2 120,270 Q 140,350.4 160,270 Q 180,198.2 200,270 Q 220,334.2 240,270 Q 260,213 280,270 Q 300,321 320,270 Q 340,224.6 360,270 Q 380,310.4 400,270 Q 420,234 440,270 Q 460,302.2 480,270 Q 500,241.2 520,270 Q 540,295.6 560,270 Q 580,247.2 600,270 Q 620,290.4 640,270 Q 660,251.8 680,270 Q 700,286.2 720,270 Q 740,255.6 760,270 Q 780,282.8 800,270 Q 820,258.6 840,270 Q 860,280.2 880,270 Q 900,260.8 920,270 Q 940,278.2 960,270 Q 980,262.6 1000,270 Q 1020,276.4 1040,270 Q 1060,264.2 1080,270 Q 1100,275.2 1120,270 Q 1140,265.4 1160,270 Q 1180,274 1200,270"
-    fill="none" stroke="url(#wg)" stroke-width="2" filter="url(#glow)"
+    fill="none" stroke="url(#wg)" stroke-width="2"
   />
 
   <!-- Title -->

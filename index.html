@@ -263,9 +263,68 @@ select:focus { border-color: var(--sub); }
   white-space: nowrap;
 }
 
+/* ─── How-to guide ─────────────────────────────────────────────── */
+.how-to {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 18px;
+}
+.how-to summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.how-to summary::-webkit-details-marker { display: none; }
+.how-to summary::before { content: '▶'; font-size: 8px; transition: transform 0.2s; }
+.how-to[open] summary::before { transform: rotate(90deg); }
+.how-to-body {
+  padding: 0 16px 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 700px) { .how-to-body { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 440px) { .how-to-body { grid-template-columns: 1fr; } }
+.ht-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.ht-num {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sub) 20%, transparent);
+  border: 1px solid var(--sub);
+  color: var(--sub);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ht-text strong { font-size: 12px; display: block; color: var(--fg); margin-bottom: 3px; }
+.ht-text p { font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0; }
+
 /* ─── Parameter rows ───────────────────────────────────────────── */
 .param-row { margin-bottom: 12px; }
 .param-row:last-child { margin-bottom: 0; }
+.param-hint {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 4px;
+  opacity: 0.75;
+}
 
 .param-header {
   display: flex;
@@ -465,6 +524,55 @@ input[type=range]::-moz-range-track {
   <button class="btn-reset-all" id="btn-reset-all">Reset All</button>
 </div>
 
+<!-- How-to guide -->
+<details class="how-to">
+  <summary>Quick start guide</summary>
+  <div class="how-to-body">
+    <div class="ht-step">
+      <div class="ht-num">1</div>
+      <div class="ht-text">
+        <strong>Pick a note</strong>
+        <p>Select any note (C–B) and octave (1–4). The Hz display updates live.</p>
+      </div>
+    </div>
+    <div class="ht-step">
+      <div class="ht-num">2</div>
+      <div class="ht-text">
+        <strong>Apply to Layers</strong>
+        <p>Sets Sub, Sweep, and Body frequencies to musically correct values for that note.</p>
+      </div>
+    </div>
+    <div class="ht-step">
+      <div class="ht-num">3</div>
+      <div class="ht-text">
+        <strong>Shape each layer</strong>
+        <p>Sub = constant tone. Sweep = pitch glide (the "drop"). Punch = attack click. Rumble = filtered noise. Body = warmth.</p>
+      </div>
+    </div>
+    <div class="ht-step">
+      <div class="ht-num">4</div>
+      <div class="ht-text">
+        <strong>Drive &amp; Gain</strong>
+        <p>Drive adds tanh saturation (1 = clean, 3+ = heavy). Gain trims post-saturation output. Keep ≤ 1.0 to avoid clipping.</p>
+      </div>
+    </div>
+    <div class="ht-step">
+      <div class="ht-num">5</div>
+      <div class="ht-text">
+        <strong>Preview</strong>
+        <p>Plays in browser via Web Audio API. Regenerates automatically when params change.</p>
+      </div>
+    </div>
+    <div class="ht-step">
+      <div class="ht-num">6</div>
+      <div class="ht-text">
+        <strong>Download WAV</strong>
+        <p>Exports a 16-bit PCM mono .wav at 44.1 kHz, named after the selected note.</p>
+      </div>
+    </div>
+  </div>
+</details>
+
 <!-- Layers -->
 <div class="layers-grid" id="layers-grid"></div>
 
@@ -503,52 +611,52 @@ function noteToFreq(idx, oct) {
 // ─── Layer / parameter definitions ───────────────────────────────
 const LAYERS = [
   {
-    id: 'sub', label: 'Sub', desc: 'Pure sine foundation', accent: 'var(--sub)',
+    id: 'sub', label: 'Sub', desc: 'Constant sine tone — the note\'s pitch', accent: 'var(--sub)',
     params: [
-      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40   },
-      { id: 'subDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.0  },
-      { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9  },
+      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40,  hint: 'Fundamental pitch. Use "Apply to Layers" to set from the note picker.' },
+      { id: 'subDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.0, hint: 'Higher = shorter tail. At 1.0 the tone is mostly gone by ~4s.' },
+      { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9, hint: 'Usually the loudest layer. Drives the overall perceived pitch.' },
     ],
   },
   {
-    id: 'sweep', label: 'Sweep', desc: 'Pitch glide', accent: 'var(--sweep)',
+    id: 'sweep', label: 'Sweep', desc: 'Exponential pitch glide — the "drop"', accent: 'var(--sweep)',
     params: [
-      { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160  },
-      { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 35   },
-      { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5  },
-      { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9  },
-      { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0  },
+      { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160,  hint: 'Starting pitch. Typically 2–4× the sub frequency (1–2 octaves up).' },
+      { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 35,   hint: 'Landing pitch. Should match Sub Frequency so the drop feels grounded.' },
+      { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5,  hint: 'Duration of the pitch fall. Longer = slower, more dramatic. Try 1–3s.' },
+      { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9,  hint: 'Amplitude fade over time. Low values keep the sweep audible longer.' },
+      { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0,  hint: 'Sweep mix level. This is usually the most audible part of the drop character.' },
     ],
   },
   {
-    id: 'punch', label: 'Punch', desc: 'Attack transient', accent: 'var(--punch)',
+    id: 'punch', label: 'Punch', desc: 'Attack transient — the initial thud', accent: 'var(--punch)',
     params: [
-      { id: 'punchDecay', label: 'Decay',  unit: '', min: 0.5, max: 12, step: 0.1,  def: 3.5  },
-      { id: 'punchVol',   label: 'Volume', unit: '', min: 0,   max: 1,  step: 0.01, def: 0.4  },
+      { id: 'punchDecay', label: 'Decay',  unit: '', min: 0.5, max: 12, step: 0.1,  def: 3.5, hint: 'Lower = longer punch. Higher = short, tight click. Try 2–5 for a full thud.' },
+      { id: 'punchVol',   label: 'Volume', unit: '', min: 0,   max: 1,  step: 0.01, def: 0.4, hint: 'Keeps the drop from feeling soft on small speakers. Too high sounds harsh.' },
     ],
   },
   {
-    id: 'rumble', label: 'Rumble', desc: 'Filtered noise', accent: 'var(--rumble)',
+    id: 'rumble', label: 'Rumble', desc: 'Lowpass-filtered noise — weight & texture', accent: 'var(--rumble)',
     params: [
-      { id: 'rumbleCutoff', label: 'LPF Cutoff', unit: 'Hz', min: 20,  max: 300, step: 1,    def: 70   },
-      { id: 'rumbleDecay',  label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.2  },
-      { id: 'rumbleVol',    label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.25 },
+      { id: 'rumbleCutoff', label: 'LPF Cutoff', unit: 'Hz', min: 20,  max: 300, step: 1,    def: 70,   hint: 'Lowpass cutoff for the noise. Lower = deeper, muddier. Try 40–100 Hz.' },
+      { id: 'rumbleDecay',  label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.2,  hint: 'How long the rumble sustains. Usually slightly longer than the sub.' },
+      { id: 'rumbleVol',    label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.25, hint: 'Adds sub-floor texture and physical weight. Keep subtle: 0.1–0.35.' },
     ],
   },
   {
-    id: 'body', label: 'Body', desc: 'Harmonic warmth', accent: 'var(--body-c)',
+    id: 'body', label: 'Body', desc: 'Second sine — midrange warmth', accent: 'var(--body-c)',
     params: [
-      { id: 'bodyFreq',  label: 'Frequency', unit: 'Hz', min: 40,  max: 400, step: 1,    def: 90   },
-      { id: 'bodyDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 2.0  },
-      { id: 'bodyVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.35 },
+      { id: 'bodyFreq',  label: 'Frequency', unit: 'Hz', min: 40,  max: 400, step: 1,    def: 90,   hint: 'Resonant tone pitch. The perfect fifth (1.5× Sub Freq) adds warmth without muddying.' },
+      { id: 'bodyDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 2.0,  hint: 'How long the body tone sustains. Usually slower decay than the sub.' },
+      { id: 'bodyVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.35, hint: 'Fills out the tone for speakers that don\'t reproduce sub bass. Keep 0.2–0.5.' },
     ],
   },
   {
-    id: 'master', label: 'Master', desc: 'Output chain', accent: 'var(--master)',
+    id: 'master', label: 'Master', desc: 'Mix → normalize → saturate → clip', accent: 'var(--master)',
     params: [
-      { id: 'duration', label: 'Duration', unit: 's',  min: 1,   max: 12, step: 0.5,  def: 6.0  },
-      { id: 'drive',    label: 'Drive',    unit: '',   min: 1,   max: 5,  step: 0.05, def: 2.2  },
-      { id: 'gain',     label: 'Gain',     unit: '',   min: 0.1, max: 2,  step: 0.05, def: 1.0  },
+      { id: 'duration', label: 'Duration', unit: 's',  min: 1,   max: 12, step: 0.5,  def: 6.0, hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
+      { id: 'drive',    label: 'Drive',    unit: '',   min: 1,   max: 5,  step: 0.05, def: 2.2, hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
+      { id: 'gain',     label: 'Gain',     unit: '',   min: 0.1, max: 2,  step: 0.05, def: 1.0, hint: 'Post-saturation output trim. Values >1.0 push into hard clipping. Usually leave at 1.0.' },
     ],
   },
 ];
@@ -646,6 +754,8 @@ LAYERS.forEach(layer => {
     slider.value = p.def;
     updateSlider(slider, p);
 
+    if (p.hint) slider.title = p.hint;
+
     slider.addEventListener('input', () => {
       const val = parseFloat(slider.value);
       state[p.id] = val;
@@ -656,6 +766,14 @@ LAYERS.forEach(layer => {
 
     row.appendChild(hdr);
     row.appendChild(slider);
+
+    if (p.hint) {
+      const hint = document.createElement('div');
+      hint.className = 'param-hint';
+      hint.textContent = p.hint;
+      row.appendChild(hint);
+    }
+
     card.appendChild(row);
   });
 
