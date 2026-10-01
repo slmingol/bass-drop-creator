@@ -1,0 +1,1051 @@
+<title>Bass Drop Creator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ─── Tokens — dark-first synth aesthetic ─────────────────────── */
+:root {
+  --bg:       #08080d;
+  --surface:  #0f0f17;
+  --card:     #141420;
+  --border:   #1f1f30;
+  --fg:       #ddddf0;
+  --muted:    #6060a0;
+  --dim:      #2a2a42;
+
+  --sub:      #b09eff;
+  --sweep:    #5db8ff;
+  --punch:    #ff8c42;
+  --rumble:   #2de0c4;
+  --body-c:   #52e06a;
+  --master:   #ffd060;
+
+  --track:    #252540;
+  --r:        10px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:      #f0f0f8;
+    --surface: #e5e5f0;
+    --card:    #d8d8e8;
+    --border:  #c4c4d8;
+    --fg:      #16162a;
+    --muted:   #585888;
+    --dim:     #bcbcd4;
+    --sub:     #6340f0;
+    --sweep:   #1578d8;
+    --punch:   #cc5010;
+    --rumble:  #089880;
+    --body-c:  #159830;
+    --master:  #b88800;
+    --track:   #c0c0d8;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg:      #f0f0f8;
+  --surface: #e5e5f0;
+  --card:    #d8d8e8;
+  --border:  #c4c4d8;
+  --fg:      #16162a;
+  --muted:   #585888;
+  --dim:     #bcbcd4;
+  --sub:     #6340f0;
+  --sweep:   #1578d8;
+  --punch:   #cc5010;
+  --rumble:  #089880;
+  --body-c:  #159830;
+  --master:  #b88800;
+  --track:   #c0c0d8;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 14px;
+  padding-inline: 18px;
+  padding-block: 0 calc(env(safe-area-inset-bottom, 0px) + 74px);
+  min-height: 100%;
+}
+
+/* ─── Header ───────────────────────────────────────────────────── */
+header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+.logo {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-icon {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--sub), var(--sweep));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.logo span { color: var(--sub); }
+
+.header-note {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.btn-theme {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.btn-theme:hover { border-color: var(--sub); }
+
+/* ─── Note picker ──────────────────────────────────────────────── */
+.note-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-block: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 20px;
+}
+.note-group { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.note-selectors { display: flex; gap: 8px; align-items: center; }
+
+select {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+select:focus { border-color: var(--sub); }
+
+.note-freq-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.note-freq {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--fg);
+}
+.note-freq .hz { font-size: 13px; color: var(--muted); margin-left: 3px; }
+.note-name-big {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.btn-apply {
+  padding: 9px 18px;
+  background: var(--sub);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.btn-apply:hover { opacity: 0.85; }
+.btn-apply:active { transform: scale(0.96); }
+
+.btn-reset-all {
+  padding: 9px 14px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  align-self: flex-end;
+}
+.btn-reset-all:hover { color: var(--fg); border-color: var(--fg); }
+
+/* ─── Layers grid ──────────────────────────────────────────────── */
+.layers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (max-width: 700px) { .layers-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 440px) { .layers-grid { grid-template-columns: 1fr; } }
+
+/* ─── Layer card ───────────────────────────────────────────────── */
+.layer-card {
+  --accent: var(--sub);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  border-top: 2px solid var(--accent);
+}
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.layer-chip {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 3px 7px;
+  border-radius: 4px;
+}
+.layer-desc {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Parameter rows ───────────────────────────────────────────── */
+.param-row { margin-bottom: 12px; }
+.param-row:last-child { margin-bottom: 0; }
+
+.param-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+  gap: 8px;
+}
+.param-name {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.param-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--fg);
+  white-space: nowrap;
+  text-align: right;
+  min-width: 52px;
+}
+
+/* ─── Range slider ─────────────────────────────────────────────── */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to right,
+    var(--accent) var(--fill, 0%),
+    var(--track) var(--fill, 0%)
+  );
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+input[type=range]::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  cursor: pointer;
+}
+input[type=range]::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--track);
+}
+
+/* ─── Waveform + actions ───────────────────────────────────────── */
+.output-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.output-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.output-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#waveform {
+  width: 100%;
+  height: 70px;
+  display: block;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+/* ─── Fixed action bar ─────────────────────────────────────────── */
+.action-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  padding: 12px 18px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 100;
+}
+.status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status.ok { color: var(--body-c); }
+.status.err { color: var(--punch); }
+
+.btn {
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.btn-preview {
+  background: var(--card);
+  color: var(--sweep);
+  border: 1px solid var(--sweep);
+}
+.btn-preview:hover:not(:disabled) { background: color-mix(in srgb, var(--sweep) 15%, var(--card)); }
+
+.btn-generate {
+  background: linear-gradient(135deg, var(--sub), var(--sweep));
+  color: #fff;
+}
+.btn-generate:hover:not(:disabled) { opacity: 0.88; }
+</style>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">↓</div>
+    Bass<span>Drop</span> Creator
+  </div>
+  <div class="header-right">
+    <div class="header-note" id="header-note">44.1 kHz · 16-bit · mono</div>
+    <button class="btn-theme" id="btn-theme" title="Toggle theme">☾</button>
+  </div>
+</header>
+
+<!-- Note picker -->
+<div class="note-section">
+  <div class="note-group">
+    <div class="eyebrow">Note</div>
+    <div class="note-selectors">
+      <select id="sel-note">
+        <option value="0">C</option>
+        <option value="1">C♯ / D♭</option>
+        <option value="2">D</option>
+        <option value="3">D♯ / E♭</option>
+        <option value="4">E</option>
+        <option value="5">F</option>
+        <option value="6">F♯ / G♭</option>
+        <option value="7">G</option>
+        <option value="8">G♯ / A♭</option>
+        <option value="9">A</option>
+        <option value="10">A♯ / B♭</option>
+        <option value="11">B</option>
+      </select>
+      <select id="sel-oct">
+        <option value="1">Oct 1</option>
+        <option value="2" selected>Oct 2</option>
+        <option value="3">Oct 3</option>
+        <option value="4">Oct 4</option>
+      </select>
+    </div>
+  </div>
+  <div class="note-freq-display">
+    <div class="eyebrow">Frequency</div>
+    <div class="note-freq" id="note-freq">–<span class="hz">Hz</span></div>
+    <div class="note-name-big" id="note-name-big">–</div>
+  </div>
+  <button class="btn-apply" id="btn-apply">Apply to Layers</button>
+  <button class="btn-reset-all" id="btn-reset-all">Reset All</button>
+</div>
+
+<!-- Layers -->
+<div class="layers-grid" id="layers-grid"></div>
+
+<!-- Waveform -->
+<div class="output-section">
+  <div class="output-header">
+    <div class="output-title">Waveform Preview</div>
+    <div class="output-meta" id="output-meta">not generated</div>
+  </div>
+  <canvas id="waveform" width="900" height="140"></canvas>
+</div>
+
+<!-- Action bar -->
+<div class="action-bar">
+  <div class="status" id="status">Ready — adjust parameters and generate.</div>
+  <button class="btn btn-preview" id="btn-preview">&#9654; Preview</button>
+  <button class="btn btn-generate" id="btn-generate">&#8595; Download WAV</button>
+</div>
+
+<script>
+// ─── Theme init (before first paint) ─────────────────────────────
+try {
+  const t = localStorage.getItem('bdc-theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+} catch(e) {}
+
+// ─── Note map ────────────────────────────────────────────────────
+const NOTE_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTE_DISP  = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+
+function noteToFreq(idx, oct) {
+  const midi = (oct + 1) * 12 + idx;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// ─── Layer / parameter definitions ───────────────────────────────
+const LAYERS = [
+  {
+    id: 'sub', label: 'Sub', desc: 'Pure sine foundation', accent: 'var(--sub)',
+    params: [
+      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40   },
+      { id: 'subDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.0  },
+      { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9  },
+    ],
+  },
+  {
+    id: 'sweep', label: 'Sweep', desc: 'Pitch glide', accent: 'var(--sweep)',
+    params: [
+      { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160  },
+      { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 35   },
+      { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5  },
+      { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9  },
+      { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0  },
+    ],
+  },
+  {
+    id: 'punch', label: 'Punch', desc: 'Attack transient', accent: 'var(--punch)',
+    params: [
+      { id: 'punchDecay', label: 'Decay',  unit: '', min: 0.5, max: 12, step: 0.1,  def: 3.5  },
+      { id: 'punchVol',   label: 'Volume', unit: '', min: 0,   max: 1,  step: 0.01, def: 0.4  },
+    ],
+  },
+  {
+    id: 'rumble', label: 'Rumble', desc: 'Filtered noise', accent: 'var(--rumble)',
+    params: [
+      { id: 'rumbleCutoff', label: 'LPF Cutoff', unit: 'Hz', min: 20,  max: 300, step: 1,    def: 70   },
+      { id: 'rumbleDecay',  label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.2  },
+      { id: 'rumbleVol',    label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.25 },
+    ],
+  },
+  {
+    id: 'body', label: 'Body', desc: 'Harmonic warmth', accent: 'var(--body-c)',
+    params: [
+      { id: 'bodyFreq',  label: 'Frequency', unit: 'Hz', min: 40,  max: 400, step: 1,    def: 90   },
+      { id: 'bodyDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 2.0  },
+      { id: 'bodyVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.35 },
+    ],
+  },
+  {
+    id: 'master', label: 'Master', desc: 'Output chain', accent: 'var(--master)',
+    params: [
+      { id: 'duration', label: 'Duration', unit: 's',  min: 1,   max: 12, step: 0.5,  def: 6.0  },
+      { id: 'drive',    label: 'Drive',    unit: '',   min: 1,   max: 5,  step: 0.05, def: 2.2  },
+      { id: 'gain',     label: 'Gain',     unit: '',   min: 0.1, max: 2,  step: 0.05, def: 1.0  },
+    ],
+  },
+];
+
+// ─── State ───────────────────────────────────────────────────────
+const state = {};
+LAYERS.forEach(l => l.params.forEach(p => { state[p.id] = p.def; }));
+
+function saveState() {
+  try {
+    const ni = document.getElementById('sel-note');
+    const no = document.getElementById('sel-oct');
+    if (ni) localStorage.setItem('bdc-note-idx', ni.value);
+    if (no) localStorage.setItem('bdc-note-oct', no.value);
+    localStorage.setItem('bdc-params', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const allParams = LAYERS.flatMap(l => l.params);
+    const raw = localStorage.getItem('bdc-params');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      allParams.forEach(p => {
+        if (saved[p.id] !== undefined) {
+          const val = Math.max(p.min, Math.min(p.max, Number(saved[p.id])));
+          state[p.id] = val;
+          const sl = document.getElementById(`sl-${p.id}`);
+          const ve = document.getElementById(`val-${p.id}`);
+          if (sl) { sl.value = val; updateSlider(sl, p); }
+          if (ve) ve.textContent = fmt(val, p);
+        }
+      });
+    }
+    const ni = document.getElementById('sel-note');
+    const no = document.getElementById('sel-oct');
+    const sv = localStorage.getItem('bdc-note-idx');
+    const so = localStorage.getItem('bdc-note-oct');
+    if (sv !== null && ni) ni.value = sv;
+    if (so !== null && no) no.value = so;
+  } catch(e) {}
+}
+
+// ─── Build UI ────────────────────────────────────────────────────
+const grid = document.getElementById('layers-grid');
+
+function fmt(val, p) {
+  const s = p.step < 0.1 ? val.toFixed(2) : p.step < 1 ? val.toFixed(1) : val.toFixed(0);
+  return p.unit ? `${s} ${p.unit}` : s;
+}
+
+function updateSlider(slider, p) {
+  const min = parseFloat(slider.min);
+  const max = parseFloat(slider.max);
+  const pct = (parseFloat(slider.value) - min) / (max - min) * 100;
+  slider.style.setProperty('--fill', `${pct.toFixed(1)}%`);
+}
+
+LAYERS.forEach(layer => {
+  const card = document.createElement('div');
+  card.className = 'layer-card';
+  card.style.setProperty('--accent', layer.accent);
+
+  const header = document.createElement('div');
+  header.className = 'layer-header';
+  header.innerHTML = `<span class="layer-chip">${layer.label}</span><span class="layer-desc">${layer.desc}</span>`;
+  card.appendChild(header);
+
+  layer.params.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'param-row';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'param-header';
+
+    const name = document.createElement('span');
+    name.className = 'param-name';
+    name.textContent = p.label;
+
+    const valEl = document.createElement('span');
+    valEl.className = 'param-value';
+    valEl.id = `val-${p.id}`;
+    valEl.textContent = fmt(p.def, p);
+
+    hdr.appendChild(name);
+    hdr.appendChild(valEl);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.id = `sl-${p.id}`;
+    slider.min = p.min;
+    slider.max = p.max;
+    slider.step = p.step;
+    slider.value = p.def;
+    updateSlider(slider, p);
+
+    slider.addEventListener('input', () => {
+      const val = parseFloat(slider.value);
+      state[p.id] = val;
+      valEl.textContent = fmt(val, p);
+      updateSlider(slider, p);
+      saveState();
+    });
+
+    row.appendChild(hdr);
+    row.appendChild(slider);
+    card.appendChild(row);
+  });
+
+  grid.appendChild(card);
+});
+
+// Restore persisted slider + note values (after UI is built)
+loadState();
+
+// ─── Note picker logic ────────────────────────────────────────────
+const selNote = document.getElementById('sel-note');
+const selOct  = document.getElementById('sel-oct');
+const freqEl  = document.getElementById('note-freq');
+const nameEl  = document.getElementById('note-name-big');
+
+function updateNoteDisplay() {
+  const idx  = parseInt(selNote.value);
+  const oct  = parseInt(selOct.value);
+  const freq = noteToFreq(idx, oct);
+  freqEl.innerHTML = `${freq.toFixed(2)}<span class="hz"> Hz</span>`;
+  nameEl.textContent = `MIDI ${(oct + 1) * 12 + idx} · ${NOTE_DISP[idx]}${oct}`;
+}
+
+selNote.addEventListener('change', () => { updateNoteDisplay(); saveState(); });
+selOct.addEventListener('change',  () => { updateNoteDisplay(); saveState(); });
+
+// Default to Bb1 only when nothing saved
+try {
+  if (!localStorage.getItem('bdc-note-idx')) { selNote.value = '10'; selOct.value = '1'; }
+} catch(e) { selNote.value = '10'; selOct.value = '1'; }
+updateNoteDisplay();
+
+document.getElementById('btn-apply').addEventListener('click', () => {
+  const idx  = parseInt(selNote.value);
+  const oct  = parseInt(selOct.value);
+  const freq = noteToFreq(idx, oct);
+
+  // Smart defaults: sub at note freq (down 1 oct if > 80 Hz)
+  const subF = freq > 80 ? freq / 2 : freq;
+  const vals = {
+    subFreq:    Math.round(subF * 2) / 2,
+    sweepEnd:   Math.round(subF * 2) / 2,
+    sweepStart: Math.min(Math.round(subF * 4), 500),
+    bodyFreq:   Math.min(Math.round(subF * 1.5), 400),
+  };
+
+  Object.entries(vals).forEach(([id, val]) => {
+    state[id] = val;
+    const slider = document.getElementById(`sl-${id}`);
+    const valEl  = document.getElementById(`val-${id}`);
+    if (slider && valEl) {
+      slider.value = val;
+      const allParams = LAYERS.flatMap(l => l.params);
+      const p = allParams.find(x => x.id === id);
+      valEl.textContent = fmt(val, p);
+      updateSlider(slider, p);
+    }
+  });
+
+  setStatus(`Applied ${NOTE_DISP[idx]}${oct} (${freq.toFixed(1)} Hz) → sub: ${vals.subFreq} Hz`, 'ok');
+  saveState();
+});
+
+document.getElementById('btn-reset-all').addEventListener('click', () => {
+  LAYERS.forEach(layer => layer.params.forEach(p => {
+    state[p.id] = p.def;
+    const slider = document.getElementById(`sl-${p.id}`);
+    const valEl  = document.getElementById(`val-${p.id}`);
+    if (slider) { slider.value = p.def; updateSlider(slider, p); }
+    if (valEl)  valEl.textContent = fmt(p.def, p);
+  }));
+  setStatus('All parameters reset to defaults.', '');
+  saveState();
+});
+
+// ─── Status helper ────────────────────────────────────────────────
+function setStatus(msg, cls) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status' + (cls ? ` ${cls}` : '');
+}
+
+// ─── Biquad lowpass (direct-form II) ─────────────────────────────
+function biquadLP(input, cutoff, sr) {
+  const w0 = 2 * Math.PI * Math.min(cutoff, sr * 0.499) / sr;
+  const cw = Math.cos(w0), sw = Math.sin(w0);
+  const alpha = sw / (2 * 0.7071);
+  const a0 = 1 + alpha;
+  const b0 = (1 - cw) / 2 / a0;
+  const b1 = (1 - cw) / a0;
+  const b2 = (1 - cw) / 2 / a0;
+  const a1 = (-2 * cw) / a0;
+  const a2 = (1 - alpha) / a0;
+
+  const out = new Float64Array(input.length);
+  let x1=0, x2=0, y1=0, y2=0;
+  for (let i = 0; i < input.length; i++) {
+    const x0 = input[i];
+    const y0 = b0*x0 + b1*x1 + b2*x2 - a1*y1 - a2*y2;
+    out[i] = y0;
+    x2=x1; x1=x0; y2=y1; y1=y0;
+  }
+  return out;
+}
+
+// ─── Core synthesis ───────────────────────────────────────────────
+function synthesize(p) {
+  const SR = 44100;
+  const N  = Math.ceil(SR * p.duration);
+  const dt = 1 / SR;
+  const buf = new Float64Array(N);
+
+  // Sub — pure sine + exponential decay
+  for (let i = 0; i < N; i++) {
+    const t = i * dt;
+    buf[i] += Math.sin(2 * Math.PI * p.subFreq * t) * Math.exp(-t * p.subDecay) * p.subVol;
+  }
+
+  // Sweep — exponential pitch glide with phase accumulation
+  {
+    let ph = 0;
+    const logRatio = Math.log(p.sweepEnd / p.sweepStart);
+    for (let i = 0; i < N; i++) {
+      const t  = i * dt;
+      const fr = t < p.sweepTime
+        ? p.sweepStart * Math.exp(logRatio * t / p.sweepTime)
+        : p.sweepEnd;
+      ph += 2 * Math.PI * fr * dt;
+      buf[i] += Math.sin(ph) * Math.exp(-t * p.sweepDecay) * p.sweepVol;
+    }
+  }
+
+  // Punch — two sines (100 + 80 Hz) with fast attack + decay
+  for (let i = 0; i < N; i++) {
+    const t   = i * dt;
+    const env = Math.exp(-t * p.punchDecay) * (1 - Math.exp(-t * 120));
+    buf[i] += (Math.sin(2 * Math.PI * 100 * t) + Math.sin(2 * Math.PI * 80 * t)) * env * p.punchVol;
+  }
+
+  // Rumble — 4th-order lowpass filtered noise (two cascaded biquads)
+  {
+    const noise = new Float64Array(N);
+    for (let i = 0; i < N; i++) noise[i] = Math.random() * 2 - 1;
+    const filt = biquadLP(biquadLP(noise, p.rumbleCutoff, SR), p.rumbleCutoff, SR);
+    for (let i = 0; i < N; i++) {
+      const t = i * dt;
+      buf[i] += filt[i] * Math.exp(-t * p.rumbleDecay) * p.rumbleVol;
+    }
+  }
+
+  // Body — sine with slow attack + decay
+  for (let i = 0; i < N; i++) {
+    const t   = i * dt;
+    const env = Math.exp(-t * p.bodyDecay) * (1 - Math.exp(-t * 30));
+    buf[i] += Math.sin(2 * Math.PI * p.bodyFreq * t) * env * p.bodyVol;
+  }
+
+  // Normalize
+  let peak = 0;
+  for (let i = 0; i < N; i++) if (Math.abs(buf[i]) > peak) peak = Math.abs(buf[i]);
+  if (peak > 1e-9) for (let i = 0; i < N; i++) buf[i] /= peak;
+
+  // Tanh saturation
+  const tanhD = Math.tanh(p.drive);
+  for (let i = 0; i < N; i++) buf[i] = Math.tanh(buf[i] * p.drive) / tanhD;
+
+  // Gain + clip → Int16
+  const int16 = new Int16Array(N);
+  for (let i = 0; i < N; i++) {
+    int16[i] = Math.round(Math.max(-1, Math.min(1, buf[i] * p.gain)) * 32767);
+  }
+
+  return { int16, float: buf, SR, N };
+}
+
+// ─── WAV encoder ─────────────────────────────────────────────────
+function encodeWav(int16, sr) {
+  const data = int16.length * 2;
+  const ab   = new ArrayBuffer(44 + data);
+  const dv   = new DataView(ab);
+  const ws   = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0,  'RIFF');
+  dv.setUint32(4,  36 + data,   true);
+  ws(8,  'WAVE');
+  ws(12, 'fmt ');
+  dv.setUint32(16, 16,          true);
+  dv.setUint16(20, 1,           true); // PCM
+  dv.setUint16(22, 1,           true); // mono
+  dv.setUint32(24, sr,          true);
+  dv.setUint32(28, sr * 2,      true); // byte rate
+  dv.setUint16(32, 2,           true); // block align
+  dv.setUint16(34, 16,          true); // bits per sample
+  ws(36, 'data');
+  dv.setUint32(40, data,        true);
+  for (let i = 0; i < int16.length; i++) dv.setInt16(44 + i * 2, int16[i], true);
+  return ab;
+}
+
+// ─── Waveform canvas ─────────────────────────────────────────────
+function drawWaveform(floatBuf) {
+  const canvas = document.getElementById('waveform');
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // Background (theme-aware)
+  const cs = getComputedStyle(document.documentElement);
+  ctx.fillStyle = cs.getPropertyValue('--bg').trim() || '#08080d';
+  ctx.fillRect(0, 0, W, H);
+
+  // Center line
+  ctx.strokeStyle = cs.getPropertyValue('--border').trim() || '#1f1f30';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H / 2);
+  ctx.lineTo(W, H / 2);
+  ctx.stroke();
+
+  if (!floatBuf || floatBuf.length === 0) return;
+
+  // Downsample
+  const step = Math.max(1, Math.floor(floatBuf.length / W));
+  const pts  = [];
+  for (let x = 0; x < W; x++) {
+    const start = x * step;
+    let mn = 0, mx = 0;
+    for (let j = 0; j < step; j++) {
+      const v = floatBuf[start + j] || 0;
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    pts.push([x, mn, mx]);
+  }
+
+  // Draw gradient waveform
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0,    '#b09eff');
+  grad.addColorStop(0.35, '#5db8ff');
+  grad.addColorStop(0.65, '#2de0c4');
+  grad.addColorStop(1,    '#52e06a');
+
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const [x, mn, mx] of pts) {
+    const yMin = H / 2 - mx * (H / 2 - 4);
+    const yMax = H / 2 - mn * (H / 2 - 4);
+    ctx.moveTo(x, yMin);
+    ctx.lineTo(x, yMax);
+  }
+  ctx.stroke();
+}
+
+// Initial empty waveform
+drawWaveform(null);
+
+// ─── Browser playback ─────────────────────────────────────────────
+let audioCtx = null;
+let currentSource = null;
+
+function playBuffer(int16, sr) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  if (currentSource) { try { currentSource.stop(); } catch(e) {} }
+
+  const N = int16.length;
+  const ab = audioCtx.createBuffer(1, N, sr);
+  const ch = ab.getChannelData(0);
+  for (let i = 0; i < N; i++) ch[i] = int16[i] / 32767;
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = ab;
+  src.connect(audioCtx.destination);
+  src.start();
+  currentSource = src;
+  return src;
+}
+
+// ─── Shared generate ─────────────────────────────────────────────
+let lastResult = null;
+
+function generate() {
+  setStatus('Synthesizing…', '');
+  document.getElementById('btn-generate').disabled = true;
+  document.getElementById('btn-preview').disabled = true;
+
+  // Yield to paint, then synthesize
+  setTimeout(() => {
+    try {
+      const p = { ...state };
+      const result = synthesize(p);
+      lastResult = result;
+
+      const dur = (result.N / result.SR).toFixed(1);
+      document.getElementById('output-meta').textContent =
+        `${dur}s · ${result.N.toLocaleString()} samples · 44.1 kHz`;
+
+      drawWaveform(result.float);
+      setStatus(`Generated ${dur}s · ${(result.N * 2 / 1024).toFixed(0)} KB PCM`, 'ok');
+    } catch(e) {
+      setStatus(`Error: ${e.message}`, 'err');
+    } finally {
+      document.getElementById('btn-generate').disabled = false;
+      document.getElementById('btn-preview').disabled = false;
+    }
+  }, 20);
+}
+
+// ─── Preview button ───────────────────────────────────────────────
+document.getElementById('btn-preview').addEventListener('click', () => {
+  if (!lastResult) {
+    // Generate first, then play
+    const origStatus = document.getElementById('status').textContent;
+    setStatus('Synthesizing for preview…', '');
+    document.getElementById('btn-preview').disabled = true;
+    setTimeout(() => {
+      try {
+        const result = synthesize({ ...state });
+        lastResult = result;
+        drawWaveform(result.float);
+        document.getElementById('output-meta').textContent =
+          `${(result.N / result.SR).toFixed(1)}s · ${result.N.toLocaleString()} samples · 44.1 kHz`;
+        const src = playBuffer(result.int16, result.SR);
+        setStatus('Playing preview…', 'ok');
+        src.onended = () => setStatus('Preview finished.', 'ok');
+      } catch(e) {
+        setStatus(`Error: ${e.message}`, 'err');
+      } finally {
+        document.getElementById('btn-preview').disabled = false;
+      }
+    }, 20);
+  } else {
+    const src = playBuffer(lastResult.int16, lastResult.SR);
+    setStatus('Playing preview…', 'ok');
+    src.onended = () => setStatus('Preview finished.', 'ok');
+  }
+});
+
+// ─── Download WAV button ──────────────────────────────────────────
+document.getElementById('btn-generate').addEventListener('click', () => {
+  generate();
+
+  // After generate() sets lastResult, trigger download
+  setTimeout(() => {
+    if (!lastResult) return;
+    try {
+      const wavBuf = encodeWav(lastResult.int16, lastResult.SR);
+      const blob   = new Blob([wavBuf], { type: 'audio/wav' });
+      const url    = URL.createObjectURL(blob);
+
+      const noteIdx  = parseInt(selNote.value);
+      const noteOct  = parseInt(selOct.value);
+      const noteName = NOTE_SHARP[noteIdx].replace('#', 's');
+      const filename = `bass_drop_${noteName}${noteOct}.wav`;
+
+      const a  = document.createElement('a');
+      a.href   = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+      setStatus(`Downloaded ${filename}`, 'ok');
+    } catch(e) {
+      setStatus(`Download error: ${e.message}`, 'err');
+    }
+  }, 200);
+});
+
+// Invalidate cached result when any param changes
+document.querySelectorAll('input[type=range]').forEach(sl =>
+  sl.addEventListener('input', () => { lastResult = null; })
+);
+
+// ─── Theme toggle ─────────────────────────────────────────────────
+const btnTheme = document.getElementById('btn-theme');
+function syncThemeIcon() {
+  const t = document.documentElement.getAttribute('data-theme') || 'dark';
+  btnTheme.textContent = t === 'dark' ? '☾' : '☀';
+}
+syncThemeIcon();
+btnTheme.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  syncThemeIcon();
+  try { localStorage.setItem('bdc-theme', next); } catch(e) {}
+  // Redraw waveform with new theme bg
+  drawWaveform(lastResult ? lastResult.float : null);
+});
+</script>
