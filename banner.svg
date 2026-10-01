@@ -91,7 +91,7 @@
 
   <!-- Stats row -->
   <text x="60" y="195" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#404060">
-    <tspan fill="#b09eff" font-weight="600">44.1 kHz</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#5db8ff" font-weight="600">16-bit PCM</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#2de0c4" font-weight="600">Mono</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#52e06a" font-weight="600">localStorage persist</tspan>
+    <tspan fill="#b09eff" font-weight="600">44.1 / 48 kHz</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#5db8ff" font-weight="600">16-bit PCM</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#2de0c4" font-weight="600">Mono</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#52e06a" font-weight="600">presets + persist</tspan>
   </text>
 
   <!-- Layer chips -->

@@ -668,7 +668,7 @@ input[type=range]::-moz-range-track {
 <div class="hero-banner">
   <canvas id="hero-canvas"></canvas>
   <div class="hero-overlay">
-    <div class="hero-tagline">5-layer browser synthesizer · note-aware · 44.1 kHz WAV export · zero dependencies</div>
+    <div class="hero-tagline">5-layer browser synthesizer · note-aware · 44.1/48 kHz WAV export · zero dependencies</div>
     <div class="hero-chips">
       <span class="hero-chip sub">Sub</span>
       <span class="hero-chip sweep">Sweep</span>
@@ -769,7 +769,7 @@ input[type=range]::-moz-range-track {
       <div class="ht-num">6</div>
       <div class="ht-text">
         <strong>Download WAV</strong>
-        <p>Exports a 16-bit PCM mono .wav at 44.1 kHz, named after the selected note.</p>
+        <p>Exports a 16-bit PCM mono .wav at the selected sample rate (44.1 or 48 kHz), named after the selected note.</p>
       </div>
     </div>
   </div>
@@ -1303,7 +1303,7 @@ function generate() {
 
       const dur = (result.N / result.SR).toFixed(1);
       document.getElementById('output-meta').textContent =
-        `${dur}s · ${result.N.toLocaleString()} samples · 44.1 kHz`;
+        `${dur}s · ${result.N.toLocaleString()} samples · ${result.SR === 48000 ? '48' : '44.1'} kHz`;
 
       drawWaveform(result.float);
       setStatus(`Generated ${dur}s · ${(result.N * 2 / 1024).toFixed(0)} KB PCM`, 'ok');
