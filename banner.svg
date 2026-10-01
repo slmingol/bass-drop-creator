@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#08080d"/>
+      <stop offset="100%" stop-color="#12121e"/>
+    </linearGradient>
+    <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="1200">
+      <stop offset="0%"   stop-color="#b09eff"/>
+      <stop offset="30%"  stop-color="#5db8ff"/>
+      <stop offset="60%"  stop-color="#2de0c4"/>
+      <stop offset="100%" stop-color="#52e06a"/>
+    </linearGradient>
+    <linearGradient id="wgfill" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="1200">
+      <stop offset="0%"   stop-color="#b09eff" stop-opacity="0.15"/>
+      <stop offset="50%"  stop-color="#2de0c4" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#52e06a" stop-opacity="0.03"/>
+    </linearGradient>
+    <linearGradient id="title-grad" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" x2="700">
+      <stop offset="0%"  stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c8c8f0"/>
+    </linearGradient>
+    <filter id="glow" x="-5%" y="-50%" width="110%" height="200%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bg)"/>
+
+  <!-- Subtle grid — horizontal -->
+  <g stroke="#1a1a2a" stroke-width="1">
+    <line x1="0" y1="80"  x2="1200" y2="80"/>
+    <line x1="0" y1="160" x2="1200" y2="160"/>
+    <line x1="0" y1="240" x2="1200" y2="240"/>
+    <line x1="0" y1="320" x2="1200" y2="320"/>
+  </g>
+  <!-- Subtle grid — vertical -->
+  <g stroke="#1a1a2a" stroke-width="1">
+    <line x1="200"  y1="0" x2="200"  y2="400"/>
+    <line x1="400"  y1="0" x2="400"  y2="400"/>
+    <line x1="600"  y1="0" x2="600"  y2="400"/>
+    <line x1="800"  y1="0" x2="800"  y2="400"/>
+    <line x1="1000" y1="0" x2="1000" y2="400"/>
+  </g>
+
+  <!-- Waveform fill (closed path back along center line) -->
+  <path
+    d="M 0,270 Q 20,156.8 40,270 Q 60,371 80,270 Q 100,180.2 120,270 Q 140,350.4 160,270 Q 180,198.2 200,270 Q 220,334.2 240,270 Q 260,213 280,270 Q 300,321 320,270 Q 340,224.6 360,270 Q 380,310.4 400,270 Q 420,234 440,270 Q 460,302.2 480,270 Q 500,241.2 520,270 Q 540,295.6 560,270 Q 580,247.2 600,270 Q 620,290.4 640,270 Q 660,251.8 680,270 Q 700,286.2 720,270 Q 740,255.6 760,270 Q 780,282.8 800,270 Q 820,258.6 840,270 Q 860,280.2 880,270 Q 900,260.8 920,270 Q 940,278.2 960,270 Q 980,262.6 1000,270 Q 1020,276.4 1040,270 Q 1060,264.2 1080,270 Q 1100,275.2 1120,270 Q 1140,265.4 1160,270 Q 1180,274 1200,270 L 1200,400 L 0,400 Z"
+    fill="url(#wgfill)"
+  />
+
+  <!-- Waveform center line -->
+  <line x1="0" y1="270" x2="1200" y2="270" stroke="#252540" stroke-width="1"/>
+
+  <!-- Waveform glow (thicker, lower opacity) -->
+  <path
+    d="M 0,270 Q 20,156.8 40,270 Q 60,371 80,270 Q 100,180.2 120,270 Q 140,350.4 160,270 Q 180,198.2 200,270 Q 220,334.2 240,270 Q 260,213 280,270 Q 300,321 320,270 Q 340,224.6 360,270 Q 380,310.4 400,270 Q 420,234 440,270 Q 460,302.2 480,270 Q 500,241.2 520,270 Q 540,295.6 560,270 Q 580,247.2 600,270 Q 620,290.4 640,270 Q 660,251.8 680,270 Q 700,286.2 720,270 Q 740,255.6 760,270 Q 780,282.8 800,270 Q 820,258.6 840,270 Q 860,280.2 880,270 Q 900,260.8 920,270 Q 940,278.2 960,270 Q 980,262.6 1000,270 Q 1020,276.4 1040,270 Q 1060,264.2 1080,270 Q 1100,275.2 1120,270 Q 1140,265.4 1160,270 Q 1180,274 1200,270"
+    fill="none" stroke="url(#wg)" stroke-width="6" stroke-opacity="0.25"
+  />
+
+  <!-- Waveform crisp line -->
+  <path
+    d="M 0,270 Q 20,156.8 40,270 Q 60,371 80,270 Q 100,180.2 120,270 Q 140,350.4 160,270 Q 180,198.2 200,270 Q 220,334.2 240,270 Q 260,213 280,270 Q 300,321 320,270 Q 340,224.6 360,270 Q 380,310.4 400,270 Q 420,234 440,270 Q 460,302.2 480,270 Q 500,241.2 520,270 Q 540,295.6 560,270 Q 580,247.2 600,270 Q 620,290.4 640,270 Q 660,251.8 680,270 Q 700,286.2 720,270 Q 740,255.6 760,270 Q 780,282.8 800,270 Q 820,258.6 840,270 Q 860,280.2 880,270 Q 900,260.8 920,270 Q 940,278.2 960,270 Q 980,262.6 1000,270 Q 1020,276.4 1040,270 Q 1060,264.2 1080,270 Q 1100,275.2 1120,270 Q 1140,265.4 1160,270 Q 1180,274 1200,270"
+    fill="none" stroke="url(#wg)" stroke-width="2" filter="url(#glow)"
+  />
+
+  <!-- Title -->
+  <text
+    x="60" y="110"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="72" font-weight="800" letter-spacing="-2"
+    fill="url(#title-grad)">Bass</text>
+  <text
+    x="234" y="110"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="72" font-weight="800" letter-spacing="-2"
+    fill="#b09eff">Drop</text>
+  <text
+    x="438" y="110"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="72" font-weight="800" letter-spacing="-2"
+    fill="url(#title-grad)">Creator</text>
+
+  <!-- Subtitle -->
+  <text
+    x="60" y="148"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="18" font-weight="400" fill="#6060a0" letter-spacing="0.3">
+    5-layer browser synthesizer · note-aware · WAV export · zero dependencies
+  </text>
+
+  <!-- Divider line under title area -->
+  <line x1="60" y1="170" x2="700" y2="170" stroke="#252540" stroke-width="1"/>
+
+  <!-- Stats row -->
+  <text x="60" y="195" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#404060">
+    <tspan fill="#b09eff" font-weight="600">44.1 kHz</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#5db8ff" font-weight="600">16-bit PCM</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#2de0c4" font-weight="600">Mono</tspan><tspan fill="#404060">  ·  </tspan><tspan fill="#52e06a" font-weight="600">localStorage persist</tspan>
+  </text>
+
+  <!-- Layer chips -->
+  <!-- Sub chip -->
+  <rect x="60"  y="342" width="66" height="26" rx="5" fill="#1a1030" stroke="#b09eff" stroke-width="1"/>
+  <text x="93"  y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#b09eff" letter-spacing="1">SUB</text>
+
+  <!-- Sweep chip -->
+  <rect x="138" y="342" width="72" height="26" rx="5" fill="#0a1828" stroke="#5db8ff" stroke-width="1"/>
+  <text x="174" y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#5db8ff" letter-spacing="1">SWEEP</text>
+
+  <!-- Punch chip -->
+  <rect x="222" y="342" width="72" height="26" rx="5" fill="#1a0e06" stroke="#ff8c42" stroke-width="1"/>
+  <text x="258" y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#ff8c42" letter-spacing="1">PUNCH</text>
+
+  <!-- Rumble chip -->
+  <rect x="306" y="342" width="80" height="26" rx="5" fill="#061816" stroke="#2de0c4" stroke-width="1"/>
+  <text x="346" y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#2de0c4" letter-spacing="1">RUMBLE</text>
+
+  <!-- Body chip -->
+  <rect x="398" y="342" width="66" height="26" rx="5" fill="#081608" stroke="#52e06a" stroke-width="1"/>
+  <text x="431" y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#52e06a" letter-spacing="1">BODY</text>
+
+  <!-- Master chip -->
+  <rect x="476" y="342" width="78" height="26" rx="5" fill="#181208" stroke="#ffd060" stroke-width="1"/>
+  <text x="515" y="359" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#ffd060" letter-spacing="1">MASTER</text>
+
+  <!-- URL badge (top right) -->
+  <rect x="950" y="28" width="216" height="32" rx="8" fill="#0f0f1a" stroke="#252540" stroke-width="1"/>
+  <text x="1058" y="49" font-family="'Courier New', Courier, monospace" font-size="12" fill="#5db8ff" text-anchor="middle">slmingol.github.io/bass-drop-creator</text>
+</svg>
