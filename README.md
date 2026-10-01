@@ -31,7 +31,7 @@ After mixing, the chain runs:
 1. **Normalize** — peak-normalize the mix to ±1.0 before saturation
 2. **Tanh saturation** — `tanh(x · drive) / tanh(drive)` soft clipper; drive 1.0 = clean, 3.0+ = heavy
 3. **Output gain** — post-saturation level trim, hard-clipped at ±1.0
-4. **Encode** — manual RIFF/WAV header + 16-bit PCM at 44,100 Hz, mono
+4. **Encode** — manual RIFF/WAV header + 16-bit PCM at the selected sample rate (44.1 or 48 kHz), mono
 
 ---
 
@@ -79,6 +79,7 @@ After mixing, the chain runs:
 | Duration | 1–12 s | 6.0 s | Total sample length |
 | Drive | 1–5 | 2.2 | Saturation intensity |
 | Gain | 0.1–2 | 1.0 | Post-saturation output level |
+| Sample Rate | 44.1 / 48 kHz | 44.1 kHz | Output sample rate — use 48 kHz for video or MainStage |
 
 ---
 
@@ -86,12 +87,13 @@ After mixing, the chain runs:
 
 1. **Pick a note** — choose note name (C through B, with enharmonic spellings) and octave (1–4). The frequency display updates in real time.
 2. **Apply to Layers** — click "Apply to Layers" to set smart defaults: Sub and Sweep End at the note's fundamental (or one octave below if >80 Hz), Sweep Start two octaves up, Body at the perfect fifth.
-3. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
-4. **Preview** — plays the synthesized audio directly in the browser via Web Audio API. Synthesizes on first click if not yet generated.
-5. **Download WAV** — synthesizes, draws the waveform, and downloads a `.wav` file named `bass_drop_<note><octave>.wav`.
-6. **Reset All** — returns every parameter to its default value.
+3. **Load a preset** — choose from five factory presets (Default, Deep Sub, Heavy Club, Clean Sub, Tight Punch) to start from a tuned patch, then adjust from there. Save your own with the name input and Save button.
+4. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
+5. **Preview** — plays the synthesized audio directly in the browser via Web Audio API. Synthesizes on first click if not yet generated.
+6. **Download WAV** — synthesizes, draws the waveform, and downloads a `.wav` file named `bass_drop_<note><octave>.wav`.
+7. **Reset All** — returns every parameter to its default value.
 
-All slider positions, note selection, and theme preference persist automatically in `localStorage`.
+All slider positions, note selection, theme preference, and user presets persist automatically in `localStorage`.
 
 ---
 
@@ -103,7 +105,7 @@ All slider positions, note selection, and theme preference persist automatically
 - **Phase continuity**: the Sweep layer accumulates phase from frequency, so the exponential glide produces no discontinuities regardless of sample rate
 - **WAV encoding**: manual `ArrayBuffer` / `DataView` construction of the RIFF header; no Blob API tricks needed
 - **Playback**: `AudioContext.createBuffer()` → `AudioBufferSourceNode` for in-browser preview
-- **Persistence**: `localStorage` stores all 19 synth parameters as JSON plus note index, octave, and theme choice
+- **Persistence**: `localStorage` stores all 20 synth parameters as JSON plus note index, octave, theme choice, and user-saved presets
 
 ---
 
