@@ -1823,6 +1823,21 @@ const FACTORY_PRESETS = [
     params: { subFreq: 49, subDecay: 0.6, subVol: 0.88, sweepStart: 196, sweepEnd: 49, sweepTime: 0.6, sweepDecay: 1.2, sweepVol: 0.82, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.25, bodyFreq: 74, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 5.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
+    name: 'F Minor Sub',    factory: true, group: 'drops',  noteIdx: 5,  noteOct: 1,
+    desc: 'F2 (87 Hz) → F0 (22 Hz) over 3s. Smooth sweep-dominant drop, F minor tonality. 5s.',
+    params: { subFreq: 44, subDecay: 0.22, subVol: 0.75, sweepStart: 87, sweepEnd: 22, sweepTime: 3.0, sweepDecay: 0.38, sweepVol: 0.95, sweepShape: 0, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 30, rumbleDecay: 0.5, rumbleVol: 0.2, bodyFreq: 65, bodyDecay: 2.5, bodyVol: 0.25, preAttack: 0, duration: 5.0, drive: 1.5, gain: 0.9, sampleRate: 44100 },
+  },
+  {
+    name: 'F Deep Sub',     factory: true, group: 'drops',  noteIdx: 5,  noteOct: 1,
+    desc: 'F2 (87 Hz) → F0 (22 Hz) over 4s. Full-length sweep to infrasound, hot signal. 4.5s.',
+    params: { subFreq: 22, subDecay: 0.2, subVol: 0.85, sweepStart: 87, sweepEnd: 22, sweepTime: 3.8, sweepDecay: 0.3, sweepVol: 1.0, sweepShape: 0, punchDecay: 8.0, punchVol: 0.03, rumbleCutoff: 28, rumbleDecay: 0.35, rumbleVol: 0.18, bodyFreq: 33, bodyDecay: 2.0, bodyVol: 0.2, preAttack: 0, duration: 4.5, drive: 2.2, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'C Sub Drop',     factory: true, group: 'drops',  noteIdx: 0,  noteOct: 2,
+    desc: 'C2 (65 Hz) → C1 (33 Hz) in 1.5s. Short punchy sub drop, clean decay. 4s.',
+    params: { subFreq: 33, subDecay: 0.32, subVol: 0.82, sweepStart: 65, sweepEnd: 33, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 0, punchDecay: 3.0, punchVol: 0.1, rumbleCutoff: 40, rumbleDecay: 0.45, rumbleVol: 0.25, bodyFreq: 49, bodyDecay: 1.5, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
+  },
+  {
     name: 'Epic Build',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
     desc: '3s pre-attack swell, then 5s drop. G1 (49 Hz), 10s total. Dramatic show moments.',
     params: { subFreq: 49, subDecay: 0.38, subVol: 0.9, sweepStart: 392, sweepEnd: 49, sweepTime: 5.0, sweepDecay: 0.35, sweepVol: 1.0, sweepShape: 1, punchDecay: 4.0, punchVol: 0.3, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.22, bodyFreq: 74, bodyDecay: 4.5, bodyVol: 0.28, preAttack: 3.0, duration: 10.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
