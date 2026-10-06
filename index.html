@@ -1268,12 +1268,44 @@ drawWaveform(null);
 // ─── Browser playback ─────────────────────────────────────────────
 let audioCtx = null;
 let currentSource = null;
+let playStartTime = 0;
+let playDuration  = 0;
+let playheadRaf   = null;
+
+function stopPlayhead() {
+  if (playheadRaf) { cancelAnimationFrame(playheadRaf); playheadRaf = null; }
+  if (lastResult) drawWaveform(lastResult.float);
+}
+
+function startPlayhead() {
+  if (playheadRaf) cancelAnimationFrame(playheadRaf);
+  function frame() {
+    if (!lastResult) return;
+    drawWaveform(lastResult.float);
+    const elapsed = audioCtx.currentTime - playStartTime;
+    const frac = Math.min(elapsed / playDuration, 1);
+    const cv  = document.getElementById('waveform');
+    const ctx = cv.getContext('2d');
+    const x   = Math.round(frac * cv.width);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = Math.max(1, cv.width / 600);
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur  = 4;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
+    ctx.restore();
+    if (frac < 1) playheadRaf = requestAnimationFrame(frame);
+    else stopPlayhead();
+  }
+  playheadRaf = requestAnimationFrame(frame);
+}
 
 function playBuffer(int16, sr) {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
 
   if (currentSource) { try { currentSource.stop(); } catch(e) {} }
+  stopPlayhead();
 
   const N = int16.length;
   const ab = audioCtx.createBuffer(1, N, sr);
@@ -1284,6 +1316,10 @@ function playBuffer(int16, sr) {
   src.buffer = ab;
   src.connect(audioCtx.destination);
   src.start();
+  playStartTime = audioCtx.currentTime;
+  playDuration  = N / sr;
+  startPlayhead();
+  src.addEventListener('ended', stopPlayhead);
   currentSource = src;
   return src;
 }
