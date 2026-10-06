@@ -1272,6 +1272,7 @@ drawWaveform(null);
 // ─── Browser playback ─────────────────────────────────────────────
 let audioCtx = null;
 let currentSource = null;
+let currentGain   = null;
 let playStartTime = 0;
 let playDuration  = 0;
 let playheadRaf   = null;
@@ -1316,10 +1317,15 @@ function playBuffer(int16, sr) {
   const ch = ab.getChannelData(0);
   for (let i = 0; i < N; i++) ch[i] = int16[i] / 32767;
 
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(1, audioCtx.currentTime);
+  gain.connect(audioCtx.destination);
+
   const src = audioCtx.createBufferSource();
   src.buffer = ab;
-  src.connect(audioCtx.destination);
+  src.connect(gain);
   src.start();
+  currentGain = gain;
   playStartTime = audioCtx.currentTime;
   playDuration  = N / sr;
   startPlayhead();
@@ -1375,7 +1381,13 @@ function onPlayEnded() {
 
 document.getElementById('btn-preview').addEventListener('click', () => {
   if (isPlaying) {
-    if (currentSource) { try { currentSource.stop(); } catch(e) {} }
+    if (currentGain && audioCtx) {
+      currentGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.008);
+      const src = currentSource;
+      setTimeout(() => { try { src.stop(); } catch(e) {} }, 60);
+    } else if (currentSource) {
+      try { currentSource.stop(); } catch(e) {}
+    }
     stopPlayhead();
     setPlaying(false);
     setStatus('Stopped.', '');
