@@ -2,6 +2,11 @@
 
 ![Bass Drop Creator](banner.svg)
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=flat-square)](https://slmingol.github.io/bass-drop-creator/)
+[![GitHub Pages](https://img.shields.io/badge/hosted-GitHub%20Pages-blue?style=flat-square&logo=github)](https://slmingol.github.io/bass-drop-creator/)
+[![Last Commit](https://img.shields.io/github/last-commit/slmingol/bass-drop-creator?style=flat-square)](https://github.com/slmingol/bass-drop-creator/commits/main)
+[![License](https://img.shields.io/github/license/slmingol/bass-drop-creator?style=flat-square)](LICENSE)
+
 **Browser-based bass drop synthesizer.** Select a musical note, shape five independent synthesis layers, preview the result in-browser, and export a 16-bit WAV file ready for MainStage, Logic, or any DAW as a sampler instrument.
 
 **[Try it live →](https://slmingol.github.io/bass-drop-creator/)**
@@ -87,19 +92,83 @@ After mixing, the chain runs:
 
 ## Presets
 
-40 factory presets organized into three functional groups:
+48 factory presets organized into three functional groups:
 
 | Group | Count | Description |
 |-------|-------|-------------|
 | **Hits** | 19 | Short punchy impacts — pad-triggerable, drill accents, quick scene changes |
-| **Sub Drops** | 10 | Pitch falls from audible bass down to infrasound (120 Hz → 10–20 Hz) |
+| **Sub Drops** | 18 | Pitch falls from audible bass down to infrasound (up to 196 Hz → 12 Hz) |
 | **Builds** | 11 | Long atmospheric sounds — ballads, climax moments, show openers and closers |
 
-Hover any preset chip for a description of what it does. The preset area is collapsible.
+Hover any preset chip for a description. Search by keyword (name or description text). Preset area is collapsible. Save your own presets; they appear in a Saved section and persist in `localStorage`.
 
-**Search**: Type any keyword in the filter box to narrow presets by name or description. Supports multiple space-separated terms (AND logic). Autocomplete suggests words from the full preset library as you type.
+<details>
+<summary><strong>Full preset list (48 presets)</strong></summary>
 
-**Save your own**: Enter a name in the save field and click Save. Custom presets appear in a Saved section and persist in `localStorage`.
+### Hits
+
+| Preset | Description |
+|--------|-------------|
+| **808 Punch** | 808-style kick. Fast 0.35s sweep, balanced punch. E2 (83 Hz), 3.5s. |
+| **Aggressive Impact** | High thin character (A2, 110 Hz). Aggressive but controlled. 3.5s. |
+| **Bass Hit** | Ultra-short 0.25s sweep — immediate punchy thud. Bb1, 4s. |
+| **Beat Drop** | Punchy E2 beat drop hit with fast clean sweep. 3s. |
+| **Brass Tail** | Sits under a brass chord resolution. Short 2.5s, B1 (62 Hz). |
+| **Cinematic Boom** | Film trailer impact. Heavy rumble and body, fast sweep. E1 (41 Hz), 3.5s. |
+| **Clean Sub** | Minimal distortion, soft punch, studio-clean tone. C2 (66 Hz), 6s. |
+| **Default** | Balanced starting point. All five layers active, moderate 2.5s sweep. Bb1. |
+| **Drill Accent** | Ultra-short 1.5s hit for drill set changes and visual accents. E2. |
+| **DTX Impact** | Optimized for DTX pad triggering. Ultra-short 1s, instant attack. A1 (55 Hz). |
+| **Drum Feature** | Punch-dominant hit for percussion feature moments. A1 (55 Hz), 3s. |
+| **Grimequake** | C1 (33 Hz). Extreme drive (4.8). Grime and dubstep character. |
+| **Heavy Club** | Darker, heavier club hit. Bb1, strong punch and thick body. |
+| **High Thin** | G2 (98 Hz). Thin, aggressive character. High drive (3.9). Dense attack decay. |
+| **Hip Hop Sub** | Warm hip-hop bass. Short 0.5s sweep, low drive. C2 (66 Hz), 4s. |
+| **Pit Impact** | Front ensemble thud from pit/synthesizer. Heavy punch, very short 2s. A1. |
+| **Punchy Distorted** | D2 (74 Hz). Heavy distortion (drive 4.5), aggressive attack and decay. |
+| **Tight Punch** | E2 (83 Hz). Fast 1.1s sweep, strong punch transient, 4s total. |
+| **Transition Hit** | Versatile 3s hit for movement and section transitions. D2 (74 Hz). |
+
+### Sub Drops
+
+| Preset | Description |
+|--------|-------------|
+| **C Sub Drop** | C2 (65 Hz) → C1 (33 Hz) in 1.5s. Short punchy sub drop, clean decay. 4s. |
+| **D Bass Drop** | D3 (147 Hz) → C1 (33 Hz) over 2s. Heavy saturated version, longest tail. 6s. |
+| **D Drop** | D3 (147 Hz) → C1 (33 Hz) over 2s. Medium drive, balanced weight. 6s. |
+| **D Drop Clean** | D3 (147 Hz) → C1 (33 Hz) over 2s. Low drive, pure sweep tone. 6s. |
+| **Dark Descent** | Slow 6s atmospheric descent. A1 (55 Hz), dark filtered tail, 10s total. |
+| **Deep Sub** | G1 (49 Hz). Long 3.5s sweep, 8s total. Classic deep sub drop feel. |
+| **Downlift** | Logarithmic sweep shape — fast start, slow end. E2, 1.5s fall, 4s total. |
+| **F Deep Sub** | F2 (87 Hz) → F0 (22 Hz) over 4s. Full-length sweep to infrasound, hot signal. 4.5s. |
+| **F Minor Sub** | F2 (87 Hz) → F0 (22 Hz) over 3s. Smooth sweep-dominant drop, F minor tonality. 5s. |
+| **Field Sub** | C1 (33 Hz) for field subwoofers. Heavy rumble, 1s sweep, 6s total. |
+| **G Drop** | G3 (196 Hz) → G0 (25 Hz) over 2.5s. Long clean G sweep to infrasound. 6s. |
+| **Half-Time Sub** | G1 (49 Hz), short 0.6s sweep, 5s total. Fits half-time phrase endings. |
+| **Heavy C** | F3 (174 Hz) → C1 (33 Hz) in 0.2s, then 5.5s heavy sustain. Hard hit + long tail. |
+| **Massive Sub Drop** | Maximum impact. 150 Hz → 12 Hz in 3s. Near-infrasound — felt, not heard. |
+| **Pure Sub** | Very clean — minimal punch, minimal rumble. S-curve sweep, 2s pre-attack. C1. |
+| **Quick Sub Drop** | Fast version. 110 Hz → 15 Hz in 1.2s. For quick transitions between phrases. |
+| **Sub Drop** | The classic marching band sub drop. 120 Hz → 18 Hz in 2.5s. Sweep-dominant. |
+| **Sub Sweep** | Wide range: Bb4 to Bb1 over 4.5s. Very musical, 8s total. |
+
+### Builds
+
+| Preset | Description |
+|--------|-------------|
+| **Ballad Sub** | 2.5s pre-attack swell, barely any punch. Clean and musical. A1 (55 Hz), 8s. |
+| **Climax Hit** | B1 (62 Hz). Heavy punch and rumble. For the biggest show climax moments. 5s. |
+| **Epic Build** | 3s pre-attack swell, then 5s drop. G1 (49 Hz), 10s total. Dramatic show moments. |
+| **Guard Feature** | Light and warm. G2 (98 Hz), minimal punch. For color guard feature moments. 5s. |
+| **Lyrical Sub** | Very clean, 1s pre-attack swell, near-zero punch. E1, 8s. For ballad underscoring. |
+| **Rise & Hit** | 2s ambient swell then a hard hit. E1 (41 Hz), 5.5s total, S-curve sweep. |
+| **Riser Drop** | 4s pre-attack swell then drop. G1, 10s total. For the biggest show moments. |
+| **Show Closer** | C1 (33 Hz). Long 8s tail with strong body. For the final chord of the show. |
+| **Show Opener** | High-energy immediate impact with body warmth. E1 (41 Hz). Show opening hit. |
+| **Stadium Boom** | C1 (33 Hz), maximum rumble. Designed for large venues with full PA and subs. 7s. |
+| **Sub Swell** | Gentle 1.5s pre-attack swell, G1 (49 Hz). Atmospheric, slow-build texture. 6s. |
+
+</details>
 
 ---
 
@@ -107,7 +176,7 @@ Hover any preset chip for a description of what it does. The preset area is coll
 
 1. **Pick a note** — choose note name (C through B) and octave (1–4). Frequency display updates in real time.
 2. **Apply to Layers** — sets smart defaults: Sub and Sweep End at the note's fundamental, Sweep Start two octaves up, Body at the perfect fifth.
-3. **Load a preset** — pick from 40 factory presets or save your own. Hover for a description; search to filter.
+3. **Load a preset** — pick from 48 factory presets or save your own. Hover for a description; search to filter by keyword.
 4. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
 5. **Preview** — plays synthesized audio via Web Audio API. Press Escape to stop.
 6. **Download WAV** — synthesizes and downloads `bass_drop_<note><octave>.wav`.
