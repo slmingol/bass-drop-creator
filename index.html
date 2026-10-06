@@ -69,7 +69,7 @@ body {
   font-family: 'Outfit', system-ui, sans-serif;
   font-size: 14px;
   padding-inline: 18px;
-  padding-block: 0 0;
+  padding-block: 0;
   min-height: 100%;
 }
 
@@ -770,6 +770,8 @@ input[type=range]::-moz-range-track {
 
 <!-- Layers -->
 <div class="layers-grid" id="layers-grid"></div>
+
+<div id="scroll-spacer"></div>
 
 <!-- Action bar (fixed, includes waveform) -->
 <div class="action-bar">
@@ -1655,12 +1657,12 @@ function drawHero(clipFrac) {
   requestAnimationFrame(frame);
 })();
 
-function fitBodyPadding() {
+function fitScrollSpacer() {
   const bar = document.querySelector('.action-bar');
-  document.body.style.paddingBottom = (bar.offsetHeight + 24) + 'px';
+  document.getElementById('scroll-spacer').style.height = (bar.offsetHeight + 24) + 'px';
 }
-window.addEventListener('resize', () => { drawHero(1); fitBodyPadding(); });
-fitBodyPadding();
+window.addEventListener('resize', () => { drawHero(1); fitScrollSpacer(); });
+requestAnimationFrame(fitScrollSpacer);
 
 renderPresets();
 updateHeaderNote();
