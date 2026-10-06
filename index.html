@@ -1838,6 +1838,31 @@ const FACTORY_PRESETS = [
     params: { subFreq: 33, subDecay: 0.32, subVol: 0.82, sweepStart: 65, sweepEnd: 33, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 0, punchDecay: 3.0, punchVol: 0.1, rumbleCutoff: 40, rumbleDecay: 0.45, rumbleVol: 0.25, bodyFreq: 49, bodyDecay: 1.5, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
+    name: 'Heavy C',        factory: true, group: 'drops',  noteIdx: 0,  noteOct: 1,
+    desc: 'F3 (174 Hz) → C1 (33 Hz) in 0.2s, then 5.5s heavy sustain. Hard hit + long tail.',
+    params: { subFreq: 33, subDecay: 0.12, subVol: 0.88, sweepStart: 174, sweepEnd: 33, sweepTime: 0.2, sweepDecay: 2.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 2.0, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.4, rumbleVol: 0.35, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.35, preAttack: 0, duration: 8.0, drive: 3.5, gain: 0.9, sampleRate: 44100 },
+  },
+  {
+    name: 'G Drop',         factory: true, group: 'drops',  noteIdx: 7,  noteOct: 1,
+    desc: 'G3 (196 Hz) → G0 (25 Hz) over 2.5s. Long clean G sweep to infrasound. 6s.',
+    params: { subFreq: 25, subDecay: 0.25, subVol: 0.82, sweepStart: 196, sweepEnd: 25, sweepTime: 2.5, sweepDecay: 0.38, sweepVol: 1.0, sweepShape: 0, punchDecay: 8.0, punchVol: 0.08, rumbleCutoff: 32, rumbleDecay: 0.5, rumbleVol: 0.2, bodyFreq: 37, bodyDecay: 2.0, bodyVol: 0.25, preAttack: 0, duration: 6.0, drive: 1.8, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'D Drop Clean',   factory: true, group: 'drops',  noteIdx: 2,  noteOct: 3,
+    desc: 'D3 (147 Hz) → C1 (33 Hz) over 2s. Low drive, pure sweep tone. 6s.',
+    params: { subFreq: 33, subDecay: 0.2, subVol: 0.8, sweepStart: 147, sweepEnd: 33, sweepTime: 2.0, sweepDecay: 0.45, sweepVol: 0.95, sweepShape: 0, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 38, rumbleDecay: 0.5, rumbleVol: 0.15, bodyFreq: 49, bodyDecay: 2.5, bodyVol: 0.2, preAttack: 0, duration: 6.0, drive: 1.4, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'D Drop',         factory: true, group: 'drops',  noteIdx: 2,  noteOct: 3,
+    desc: 'D3 (147 Hz) → C1 (33 Hz) over 2s. Medium drive, balanced weight. 6s.',
+    params: { subFreq: 33, subDecay: 0.18, subVol: 0.85, sweepStart: 147, sweepEnd: 33, sweepTime: 2.0, sweepDecay: 0.42, sweepVol: 0.98, sweepShape: 0, punchDecay: 5.0, punchVol: 0.15, rumbleCutoff: 40, rumbleDecay: 0.45, rumbleVol: 0.22, bodyFreq: 49, bodyDecay: 2.0, bodyVol: 0.28, preAttack: 0, duration: 6.0, drive: 2.2, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'D Bass Drop',    factory: true, group: 'drops',  noteIdx: 2,  noteOct: 3,
+    desc: 'D3 (147 Hz) → C1 (33 Hz) over 2s. Heavy saturated version, longest tail. 6s.',
+    params: { subFreq: 33, subDecay: 0.16, subVol: 0.88, sweepStart: 147, sweepEnd: 33, sweepTime: 2.0, sweepDecay: 0.4, sweepVol: 1.0, sweepShape: 0, punchDecay: 3.0, punchVol: 0.35, rumbleCutoff: 42, rumbleDecay: 0.4, rumbleVol: 0.28, bodyFreq: 49, bodyDecay: 2.0, bodyVol: 0.32, preAttack: 0, duration: 6.0, drive: 3.2, gain: 0.9, sampleRate: 44100 },
+  },
+  {
     name: 'Epic Build',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
     desc: '3s pre-attack swell, then 5s drop. G1 (49 Hz), 10s total. Dramatic show moments.',
     params: { subFreq: 49, subDecay: 0.38, subVol: 0.9, sweepStart: 392, sweepEnd: 49, sweepTime: 5.0, sweepDecay: 0.35, sweepVol: 1.0, sweepShape: 1, punchDecay: 4.0, punchVol: 0.3, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.22, bodyFreq: 74, bodyDecay: 4.5, bodyVol: 0.28, preAttack: 3.0, duration: 10.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
