@@ -842,7 +842,7 @@ const LAYERS = [
   {
     id: 'sub', label: 'Sub', desc: 'Constant sine tone — the note\'s pitch', accent: 'var(--sub)',
     params: [
-      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40,  simple: true, hint: 'Fundamental pitch. Use "Apply to Layers" to set from the note picker.' },
+      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 10,  max: 200, step: 0.5,  def: 40,  simple: true, hint: 'Fundamental pitch. Use "Apply to Layers" to set from the note picker.' },
       { id: 'subDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.0, hint: 'Higher = shorter tail. At 1.0 the tone is mostly gone by ~4s.' },
       { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9, simple: true, hint: 'Usually the loudest layer. Drives the overall perceived pitch.' },
     ],
@@ -851,7 +851,7 @@ const LAYERS = [
     id: 'sweep', label: 'Sweep', desc: 'Exponential pitch glide — the "drop"', accent: 'var(--sweep)',
     params: [
       { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160,  simple: true, hint: 'Starting pitch. Typically 2–4× the sub frequency (1–2 octaves up).' },
-      { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 35,   hint: 'Landing pitch. Should match Sub Frequency so the drop feels grounded.' },
+      { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 10,  max: 200, step: 0.5,  def: 35,   hint: 'Landing pitch. For true sub drops go 10–20 Hz (infrasound — felt not heard). Match Sub Frequency.' },
       { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5,  simple: true, hint: 'Duration of the pitch fall. Longer = slower, more dramatic. Try 1–3s.' },
       { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9,  hint: 'Amplitude fade over time. Low values keep the sweep audible longer.' },
       { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0,  simple: true, hint: 'Sweep mix level. This is usually the most audible part of the drop character.' },
@@ -1654,6 +1654,18 @@ const FACTORY_PRESETS = [
   {
     name: 'Rise & Hit',     factory: true, group: 'mb',     noteIdx: 4,  noteOct: 1,
     params: { subFreq: 41.5, subDecay: 0.5, subVol: 0.88, sweepStart: 332, sweepEnd: 41.5, sweepTime: 0.35, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 1, punchDecay: 1.8, punchVol: 0.82, rumbleCutoff: 55, rumbleDecay: 0.8, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 2.0, duration: 5.5, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Sub Drop',          factory: true, group: 'mb',  noteIdx: 0,  noteOct: 2,
+    params: { subFreq: 18, subDecay: 0.18, subVol: 0.4, sweepStart: 120, sweepEnd: 18, sweepTime: 2.5, sweepDecay: 0.22, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.6, rumbleCutoff: 28, rumbleDecay: 0.25, rumbleVol: 0.4, bodyFreq: 40, bodyDecay: 2.0, bodyVol: 0.15, preAttack: 0, duration: 5.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Massive Sub Drop',  factory: true, group: 'mb',  noteIdx: 0,  noteOct: 2,
+    params: { subFreq: 12, subDecay: 0.15, subVol: 0.35, sweepStart: 150, sweepEnd: 12, sweepTime: 3.0, sweepDecay: 0.18, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.0, punchVol: 0.65, rumbleCutoff: 22, rumbleDecay: 0.2, rumbleVol: 0.45, bodyFreq: 40, bodyDecay: 2.5, bodyVol: 0.12, preAttack: 0, duration: 6.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Quick Sub Drop',    factory: true, group: 'mb',  noteIdx: 0,  noteOct: 2,
+    params: { subFreq: 15, subDecay: 0.3, subVol: 0.38, sweepStart: 110, sweepEnd: 15, sweepTime: 1.2, sweepDecay: 0.5, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.8, punchVol: 0.7, rumbleCutoff: 25, rumbleDecay: 0.35, rumbleVol: 0.38, bodyFreq: 40, bodyDecay: 1.5, bodyVol: 0.15, preAttack: 0, duration: 3.0, drive: 2.3, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Aggressive Impact', factory: true, group: 'mb',  noteIdx: 9,  noteOct: 2,
