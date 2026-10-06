@@ -870,7 +870,7 @@ input[type=range]::-moz-range-track {
     <div class="note-freq" id="note-freq">–<span class="hz">Hz</span></div>
     <div class="note-name-big" id="note-name-big">–</div>
   </div>
-  <button class="btn-apply" id="btn-apply">Apply to Layers</button>
+  <button class="btn-apply" id="btn-apply">Transpose to Note</button>
   <button class="btn-reset-all" id="btn-reset-all">Reset All</button>
   <button class="btn-simple" id="btn-simple">Simple</button>
 </div>
@@ -889,8 +889,8 @@ input[type=range]::-moz-range-track {
     <div class="ht-step">
       <div class="ht-num">2</div>
       <div class="ht-text">
-        <strong>Apply to Layers</strong>
-        <p>Sets Sub, Sweep, and Body frequencies to musically correct values for that note.</p>
+        <strong>Transpose to Note</strong>
+        <p>Scales all frequency parameters proportionally to the new note, preserving the preset's character and octave relationships.</p>
       </div>
     </div>
     <div class="ht-step">
@@ -1233,30 +1233,42 @@ document.getElementById('btn-apply').addEventListener('click', () => {
   const idx  = parseInt(selNote.value);
   const oct  = parseInt(selOct.value);
   const freq = noteToFreq(idx, oct);
+  const allParams = LAYERS.flatMap(l => l.params);
 
-  // Smart defaults: sub at note freq (down 1 oct if > 80 Hz)
-  const subF = freq > 80 ? freq / 2 : freq;
-  const vals = {
-    subFreq:    Math.round(subF * 2) / 2,
-    sweepEnd:   Math.round(subF * 2) / 2,
-    sweepStart: Math.min(Math.round(subF * 4), 500),
-    bodyFreq:   Math.min(Math.round(subF * 1.5), 400),
-  };
+  // Target sub freq: down one octave if note is above 80 Hz (e.g. A2 → A1)
+  const targetSubF = freq > 80 ? freq / 2 : freq;
 
-  Object.entries(vals).forEach(([id, val]) => {
-    state[id] = val;
-    const slider = document.getElementById(`sl-${id}`);
-    const valEl  = document.getElementById(`val-${id}`);
-    if (slider && valEl) {
-      slider.value = val;
-      const allParams = LAYERS.flatMap(l => l.params);
+  if (state.subFreq > 0) {
+    // Proportional transpose: scale all pitch params by ratio so octave
+    // relationships (sweep range, body interval) are preserved.
+    const ratio = targetSubF / state.subFreq;
+    ['subFreq', 'sweepStart', 'sweepEnd', 'bodyFreq', 'rumbleCutoff'].forEach(id => {
       const p = allParams.find(x => x.id === id);
-      valEl.textContent = fmt(val, p);
-      updateSlider(slider, p);
-    }
-  });
+      if (!p) return;
+      const newVal = Math.round(Math.max(p.min, Math.min(p.max, state[id] * ratio)) * 2) / 2;
+      state[id] = newVal;
+      const sl = document.getElementById(`sl-${id}`);
+      const ve = document.getElementById(`val-${id}`);
+      if (sl && ve) { sl.value = newVal; ve.textContent = fmt(newVal, p); updateSlider(sl, p); }
+    });
+  } else {
+    // Fallback for zero sub freq: compute absolute defaults
+    const vals = {
+      subFreq:    Math.round(targetSubF * 2) / 2,
+      sweepEnd:   Math.round(targetSubF * 2) / 2,
+      sweepStart: Math.min(Math.round(targetSubF * 4), 500),
+      bodyFreq:   Math.min(Math.round(targetSubF * 1.5), 400),
+    };
+    Object.entries(vals).forEach(([id, val]) => {
+      state[id] = val;
+      const p = allParams.find(x => x.id === id);
+      const sl = document.getElementById(`sl-${id}`);
+      const ve = document.getElementById(`val-${id}`);
+      if (sl && ve) { sl.value = val; ve.textContent = fmt(val, p); updateSlider(sl, p); }
+    });
+  }
 
-  setStatus(`Applied ${NOTE_DISP[idx]}${oct} (${freq.toFixed(1)} Hz) → sub: ${vals.subFreq} Hz`, 'ok');
+  setStatus(`Transposed to ${NOTE_DISP[idx]}${oct} (${freq.toFixed(1)} Hz) — sub: ${state.subFreq} Hz`, 'ok');
   saveState();
   scheduleRegen();
 });
