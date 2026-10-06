@@ -231,6 +231,22 @@ select:focus { border-color: var(--sub); }
 }
 .btn-reset-all:hover { color: var(--fg); border-color: var(--fg); }
 
+.btn-simple {
+  padding: 9px 14px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  align-self: flex-end;
+}
+.btn-simple:hover { color: var(--fg); border-color: var(--fg); }
+.btn-simple.active { background: color-mix(in srgb, var(--sub) 20%, var(--card)); border-color: var(--sub); color: var(--sub); }
+.param-row.adv-hidden { display: none; }
+
 /* ─── Layers grid ──────────────────────────────────────────────── */
 .layers-grid {
   display: grid;
@@ -719,6 +735,7 @@ input[type=range]::-moz-range-track {
   </div>
   <button class="btn-apply" id="btn-apply">Apply to Layers</button>
   <button class="btn-reset-all" id="btn-reset-all">Reset All</button>
+  <button class="btn-simple" id="btn-simple">Simple</button>
 </div>
 
 <!-- How-to guide -->
@@ -809,20 +826,20 @@ const LAYERS = [
   {
     id: 'sub', label: 'Sub', desc: 'Constant sine tone — the note\'s pitch', accent: 'var(--sub)',
     params: [
-      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40,  hint: 'Fundamental pitch. Use "Apply to Layers" to set from the note picker.' },
+      { id: 'subFreq',  label: 'Frequency', unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 40,  simple: true, hint: 'Fundamental pitch. Use "Apply to Layers" to set from the note picker.' },
       { id: 'subDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.0, hint: 'Higher = shorter tail. At 1.0 the tone is mostly gone by ~4s.' },
-      { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9, hint: 'Usually the loudest layer. Drives the overall perceived pitch.' },
+      { id: 'subVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.9, simple: true, hint: 'Usually the loudest layer. Drives the overall perceived pitch.' },
     ],
   },
   {
     id: 'sweep', label: 'Sweep', desc: 'Exponential pitch glide — the "drop"', accent: 'var(--sweep)',
     params: [
-      { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160,  hint: 'Starting pitch. Typically 2–4× the sub frequency (1–2 octaves up).' },
+      { id: 'sweepStart', label: 'Start Freq', unit: 'Hz', min: 50,  max: 500, step: 1,    def: 160,  simple: true, hint: 'Starting pitch. Typically 2–4× the sub frequency (1–2 octaves up).' },
       { id: 'sweepEnd',   label: 'End Freq',   unit: 'Hz', min: 20,  max: 200, step: 0.5,  def: 35,   hint: 'Landing pitch. Should match Sub Frequency so the drop feels grounded.' },
-      { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5,  hint: 'Duration of the pitch fall. Longer = slower, more dramatic. Try 1–3s.' },
+      { id: 'sweepTime',  label: 'Glide Time', unit: 's',  min: 0.1, max: 8,   step: 0.1,  def: 2.5,  simple: true, hint: 'Duration of the pitch fall. Longer = slower, more dramatic. Try 1–3s.' },
       { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9,  hint: 'Amplitude fade over time. Low values keep the sweep audible longer.' },
-      { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0,  hint: 'Sweep mix level. This is usually the most audible part of the drop character.' },
-      { id: 'sweepShape', label: 'Sweep Shape', type: 'select',
+      { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0,  simple: true, hint: 'Sweep mix level. This is usually the most audible part of the drop character.' },
+      { id: 'sweepShape', label: 'Sweep Shape', type: 'select', simple: true,
         options: [
           {value: 0, label: 'Exponential'},
           {value: 1, label: 'S-Curve'},
@@ -837,7 +854,7 @@ const LAYERS = [
     id: 'punch', label: 'Punch', desc: 'Attack transient — the initial thud', accent: 'var(--punch)',
     params: [
       { id: 'punchDecay', label: 'Decay',  unit: '', min: 0.5, max: 12, step: 0.1,  def: 3.5, hint: 'Lower = longer punch. Higher = short, tight click. Try 2–5 for a full thud.' },
-      { id: 'punchVol',   label: 'Volume', unit: '', min: 0,   max: 1,  step: 0.01, def: 0.4, hint: 'Keeps the drop from feeling soft on small speakers. Too high sounds harsh.' },
+      { id: 'punchVol',   label: 'Volume', unit: '', min: 0,   max: 1,  step: 0.01, def: 0.4, simple: true, hint: 'Keeps the drop from feeling soft on small speakers. Too high sounds harsh.' },
     ],
   },
   {
@@ -845,7 +862,7 @@ const LAYERS = [
     params: [
       { id: 'rumbleCutoff', label: 'LPF Cutoff', unit: 'Hz', min: 20,  max: 300, step: 1,    def: 70,   hint: 'Lowpass cutoff for the noise. Lower = deeper, muddier. Try 40–100 Hz.' },
       { id: 'rumbleDecay',  label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 1.2,  hint: 'How long the rumble sustains. Usually slightly longer than the sub.' },
-      { id: 'rumbleVol',    label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.25, hint: 'Adds sub-floor texture and physical weight. Keep subtle: 0.1–0.35.' },
+      { id: 'rumbleVol',    label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.25, simple: true, hint: 'Adds sub-floor texture and physical weight. Keep subtle: 0.1–0.35.' },
     ],
   },
   {
@@ -853,15 +870,15 @@ const LAYERS = [
     params: [
       { id: 'bodyFreq',  label: 'Frequency', unit: 'Hz', min: 40,  max: 400, step: 1,    def: 90,   hint: 'Resonant tone pitch. The perfect fifth (1.5× Sub Freq) adds warmth without muddying.' },
       { id: 'bodyDecay', label: 'Decay',     unit: '',   min: 0.1, max: 5,   step: 0.05, def: 2.0,  hint: 'How long the body tone sustains. Usually slower decay than the sub.' },
-      { id: 'bodyVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.35, hint: 'Fills out the tone for speakers that don\'t reproduce sub bass. Keep 0.2–0.5.' },
+      { id: 'bodyVol',   label: 'Volume',    unit: '',   min: 0,   max: 1,   step: 0.01, def: 0.35, simple: true, hint: 'Fills out the tone for speakers that don\'t reproduce sub bass. Keep 0.2–0.5.' },
     ],
   },
   {
     id: 'master', label: 'Master', desc: 'Mix → normalize → saturate → clip', accent: 'var(--master)',
     params: [
-      { id: 'preAttack',  label: 'Build-up',    unit: 's', min: 0,   max: 4,  step: 0.1,  def: 0.0,   hint: 'Volume swell before the drop. 0 = starts at full level. 1–2s builds tension. Mirrors the volume automation curve in the DAW tutorial approach.' },
-      { id: 'duration',   label: 'Duration',    unit: 's', min: 1,   max: 12, step: 0.5,  def: 6.0,   hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
-      { id: 'drive',      label: 'Drive',       unit: '',  min: 1,   max: 5,  step: 0.05, def: 2.2,   hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
+      { id: 'preAttack',  label: 'Build-up',    unit: 's', min: 0,   max: 4,  step: 0.1,  def: 0.0,   simple: true, hint: 'Volume swell before the drop. 0 = starts at full level. 1–2s builds tension. Mirrors the volume automation curve in the DAW tutorial approach.' },
+      { id: 'duration',   label: 'Duration',    unit: 's', min: 1,   max: 12, step: 0.5,  def: 6.0,   simple: true, hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
+      { id: 'drive',      label: 'Drive',       unit: '',  min: 1,   max: 5,  step: 0.05, def: 2.2,   simple: true, hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
       { id: 'gain',       label: 'Gain',        unit: '',  min: 0.1, max: 2,  step: 0.05, def: 1.0,   hint: 'Post-saturation output trim. Values >1.0 push into hard clipping. Usually leave at 1.0.' },
       { id: 'sampleRate', label: 'Sample Rate', type: 'select',
         options: [{value: 44100, label: '44.1 kHz'}, {value: 48000, label: '48 kHz'}],
@@ -869,6 +886,18 @@ const LAYERS = [
     ],
   },
 ];
+
+// ─── Simple mode ─────────────────────────────────────────────────
+let isSimple = false;
+try { isSimple = localStorage.getItem('bdc-simple') === '1'; } catch(e) {}
+
+function applySimpleMode() {
+  document.querySelectorAll('.param-row[data-simple]').forEach(row => {
+    row.classList.toggle('adv-hidden', isSimple && row.dataset.simple === '0');
+  });
+  const btn = document.getElementById('btn-simple');
+  if (btn) btn.classList.toggle('active', isSimple);
+}
 
 // ─── State ───────────────────────────────────────────────────────
 const state = {};
@@ -952,6 +981,7 @@ LAYERS.forEach(layer => {
   layer.params.forEach(p => {
     const row = document.createElement('div');
     row.className = 'param-row';
+    row.dataset.simple = p.simple ? '1' : '0';
 
     const hdr = document.createElement('div');
     hdr.className = 'param-header';
@@ -1028,6 +1058,7 @@ LAYERS.forEach(layer => {
 
 // Restore persisted slider + note values (after UI is built)
 loadState();
+applySimpleMode();
 
 // ─── Note picker logic ────────────────────────────────────────────
 const selNote = document.getElementById('sel-note');
@@ -1096,6 +1127,12 @@ document.getElementById('btn-reset-all').addEventListener('click', () => {
   setStatus('All parameters reset to defaults.', '');
   saveState();
   scheduleRegen();
+});
+
+document.getElementById('btn-simple').addEventListener('click', () => {
+  isSimple = !isSimple;
+  try { localStorage.setItem('bdc-simple', isSimple ? '1' : '0'); } catch(e) {}
+  applySimpleMode();
 });
 
 // ─── Status helper ────────────────────────────────────────────────
@@ -1533,6 +1570,30 @@ const FACTORY_PRESETS = [
   {
     name: 'Dark Descent', factory: true, noteIdx: 9, noteOct: 1,
     params: { subFreq: 55, subDecay: 0.3, subVol: 0.88, sweepStart: 440, sweepEnd: 55, sweepTime: 6.0, sweepDecay: 0.28, sweepVol: 0.92, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 55, rumbleDecay: 0.38, rumbleVol: 0.38, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.2, preAttack: 2.5, duration: 10.0, drive: 1.6, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Show Opener', factory: true, noteIdx: 4, noteOct: 1,
+    params: { subFreq: 41.5, subDecay: 0.55, subVol: 0.88, sweepStart: 330, sweepEnd: 41.5, sweepTime: 0.4, sweepDecay: 1.2, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 55, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.4, preAttack: 0, duration: 4.0, drive: 3.0, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Drill Accent', factory: true, noteIdx: 4, noteOct: 2,
+    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.82, sweepStart: 250, sweepEnd: 82.5, sweepTime: 0.2, sweepDecay: 3.0, sweepVol: 0.7, sweepShape: 0, punchDecay: 3.5, punchVol: 0.8, rumbleCutoff: 90, rumbleDecay: 2.0, rumbleVol: 0.15, bodyFreq: 124, bodyDecay: 2.5, bodyVol: 0.25, preAttack: 0, duration: 1.5, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Ballad Sub', factory: true, noteIdx: 9, noteOct: 1,
+    params: { subFreq: 55, subDecay: 0.28, subVol: 0.9, sweepStart: 220, sweepEnd: 55, sweepTime: 5.0, sweepDecay: 0.3, sweepVol: 0.88, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 50, rumbleDecay: 0.5, rumbleVol: 0.15, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.3, preAttack: 2.5, duration: 8.0, drive: 1.4, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Climax Hit', factory: true, noteIdx: 11, noteOct: 1,
+    params: { subFreq: 61.5, subDecay: 0.45, subVol: 0.92, sweepStart: 370, sweepEnd: 61.5, sweepTime: 0.5, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 1.8, punchVol: 0.85, rumbleCutoff: 70, rumbleDecay: 0.8, rumbleVol: 0.35, bodyFreq: 92, bodyDecay: 2.0, bodyVol: 0.45, preAttack: 0, duration: 5.0, drive: 3.5, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'Show Closer', factory: true, noteIdx: 0, noteOct: 1,
+    params: { subFreq: 32.5, subDecay: 0.3, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 1, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.5, rumbleVol: 0.4, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.4, preAttack: 0.5, duration: 8.0, drive: 3.0, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'Riser Drop', factory: true, noteIdx: 7, noteOct: 1,
+    params: { subFreq: 49, subDecay: 0.35, subVol: 0.88, sweepStart: 392, sweepEnd: 49, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.95, sweepShape: 1, punchDecay: 3.5, punchVol: 0.45, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.3, preAttack: 4.0, duration: 10.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
   },
 ];
 
