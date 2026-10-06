@@ -69,7 +69,7 @@ body {
   font-family: 'Outfit', system-ui, sans-serif;
   font-size: 14px;
   padding-inline: 18px;
-  padding-block: 0 calc(env(safe-area-inset-bottom, 0px) + 74px);
+  padding-block: 0 calc(env(safe-area-inset-bottom, 0px) + 130px);
   min-height: 100%;
 }
 
@@ -403,53 +403,46 @@ input[type=range]::-moz-range-track {
 }
 
 /* ─── Waveform + actions ───────────────────────────────────────── */
-.output-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.output-title {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
 .output-meta {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
-}
-
-#waveform {
-  width: 100%;
-  height: 70px;
-  display: block;
-  border-radius: 6px;
-  background: var(--bg);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ─── Fixed action bar ─────────────────────────────────────────── */
 .action-bar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
-  padding: 12px 18px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 18px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 100;
+}
+.action-waveform {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+#waveform {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  display: block;
+  border-radius: 4px;
+  background: var(--bg);
+}
+.action-controls {
   display: flex;
   gap: 10px;
   align-items: center;
-  z-index: 100;
 }
 .status {
   font-family: 'IBM Plex Mono', monospace;
@@ -778,20 +771,17 @@ input[type=range]::-moz-range-track {
 <!-- Layers -->
 <div class="layers-grid" id="layers-grid"></div>
 
-<!-- Waveform -->
-<div class="output-section">
-  <div class="output-header">
-    <div class="output-title">Waveform Preview</div>
+<!-- Action bar (fixed, includes waveform) -->
+<div class="action-bar">
+  <div class="action-waveform">
+    <canvas id="waveform" width="900" height="80"></canvas>
     <div class="output-meta" id="output-meta">not generated</div>
   </div>
-  <canvas id="waveform" width="900" height="140"></canvas>
-</div>
-
-<!-- Action bar -->
-<div class="action-bar">
-  <div class="status" id="status">Ready — adjust parameters and generate.</div>
-  <button class="btn btn-preview" id="btn-preview">&#9654; Preview</button>
-  <button class="btn btn-generate" id="btn-generate">&#8595; Download WAV</button>
+  <div class="action-controls">
+    <div class="status" id="status">Ready — adjust parameters and generate.</div>
+    <button class="btn btn-preview" id="btn-preview">&#9654; Preview</button>
+    <button class="btn btn-generate" id="btn-generate">&#8595; Download WAV</button>
+  </div>
 </div>
 
 <script>
