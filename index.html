@@ -1460,20 +1460,26 @@ function onPlayEnded() {
   setStatus('Preview finished.', 'ok');
 }
 
-document.getElementById('btn-preview').addEventListener('click', () => {
-  if (isPlaying) {
-    if (currentGain && audioCtx) {
-      currentGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.008);
-      const src = currentSource;
-      setTimeout(() => { try { src.stop(); } catch(e) {} }, 60);
-    } else if (currentSource) {
-      try { currentSource.stop(); } catch(e) {}
-    }
-    stopPlayhead();
-    setPlaying(false);
-    setStatus('Stopped.', '');
-    return;
+function stopPreview() {
+  if (!isPlaying) return;
+  if (currentGain && audioCtx) {
+    currentGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.008);
+    const src = currentSource;
+    setTimeout(() => { try { src.stop(); } catch(e) {} }, 60);
+  } else if (currentSource) {
+    try { currentSource.stop(); } catch(e) {}
   }
+  stopPlayhead();
+  setPlaying(false);
+  setStatus('Stopped.', '');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') stopPreview();
+});
+
+document.getElementById('btn-preview').addEventListener('click', () => {
+  if (isPlaying) { stopPreview(); return; }
   if (!lastResult) {
     setStatus('Synthesizing for preview…', '');
     document.getElementById('btn-preview').disabled = true;
