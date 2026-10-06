@@ -503,6 +503,40 @@ input[type=range]::-moz-range-track {
 .btn-generate:hover:not(:disabled) { opacity: 0.88; }
 
 /* ─── Preset bar ───────────────────────────────────────────────── */
+.preset-details { margin-bottom: 14px; }
+.preset-details .preset-bar { margin-bottom: 0; border-top: none; border-radius: 0 0 var(--r) var(--r); }
+.preset-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: color 0.15s;
+}
+.preset-summary::-webkit-details-marker { display: none; }
+.preset-summary::before {
+  content: '▶';
+  font-size: 9px;
+  transition: transform 0.15s;
+  display: inline-block;
+}
+.preset-details[open] .preset-summary {
+  border-radius: var(--r) var(--r) 0 0;
+  border-bottom-color: transparent;
+  color: var(--fg);
+}
+.preset-details[open] .preset-summary::before { transform: rotate(90deg); }
 .preset-bar {
   display: flex;
   flex-direction: column;
@@ -707,7 +741,10 @@ input[type=range]::-moz-range-track {
 </div>
 
 <!-- Preset bar -->
-<div class="preset-bar" id="preset-bar"></div>
+<details class="preset-details" id="preset-details" open>
+  <summary class="preset-summary">Presets</summary>
+  <div class="preset-bar" id="preset-bar"></div>
+</details>
 
 <!-- Note picker -->
 <div class="note-section">
@@ -819,6 +856,15 @@ try {
   const t = localStorage.getItem('bdc-theme');
   if (t) document.documentElement.setAttribute('data-theme', t);
 } catch(e) {}
+try {
+  const pd = document.getElementById('preset-details');
+  if (pd && localStorage.getItem('bdc-presets-open') === '0') pd.removeAttribute('open');
+} catch(e) {}
+document.addEventListener('toggle', e => {
+  if (e.target.id === 'preset-details') {
+    try { localStorage.setItem('bdc-presets-open', e.target.open ? '1' : '0'); } catch(e2) {}
+  }
+}, true);
 
 // ─── Note map ────────────────────────────────────────────────────
 const NOTE_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
