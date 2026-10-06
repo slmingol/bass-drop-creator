@@ -506,38 +506,43 @@ input[type=range]::-moz-range-track {
 .preset-bar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 10px 14px;
+  padding: 0;
   margin-bottom: 14px;
+  overflow: hidden;
 }
-.preset-tabs {
+.preset-section {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.preset-section:last-child { border-bottom: none; }
+.preset-section-header {
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
 }
-.preset-tab {
-  padding: 4px 11px;
-  border-radius: 5px;
+.preset-section-label {
   font-family: 'Outfit', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sub);
   white-space: nowrap;
 }
-.preset-tab:hover { color: var(--fg); border-color: var(--fg); }
-.preset-tab.active { background: color-mix(in srgb, var(--sub) 16%, var(--card)); border-color: var(--sub); color: var(--sub); }
+.preset-section-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.3;
+}
 .preset-chips {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  flex: 1;
   min-width: 0;
 }
 .preset-chip {
@@ -702,20 +707,7 @@ input[type=range]::-moz-range-track {
 </div>
 
 <!-- Preset bar -->
-<div class="preset-bar">
-  <div class="preset-tabs" id="preset-tabs">
-    <button class="preset-tab active" data-tab="all">All</button>
-    <button class="preset-tab" data-tab="hits">Hits</button>
-    <button class="preset-tab" data-tab="drops">Sub Drops</button>
-    <button class="preset-tab" data-tab="builds">Builds</button>
-    <button class="preset-tab" data-tab="saved">Saved</button>
-  </div>
-  <div class="preset-chips" id="preset-chips"></div>
-  <div class="preset-save">
-    <input class="preset-name-input" type="text" id="preset-name-input" placeholder="Name new preset…" maxlength="30">
-    <button class="btn-save-preset" id="btn-save-preset">Save</button>
-  </div>
-</div>
+<div class="preset-bar" id="preset-bar"></div>
 
 <!-- Note picker -->
 <div class="note-section">
@@ -1740,89 +1732,124 @@ function applyPreset(preset) {
   scheduleRegen();
 }
 
-let activeTab = 'all';
+const GROUP_META = {
+  hits:   { label: 'Hits',      desc: 'Short punchy impacts — pad-triggerable, drill accents, quick scene changes.' },
+  drops:  { label: 'Sub Drops', desc: 'Pitch falls from audible bass down to infrasound. The classic marching band sub drop.' },
+  builds: { label: 'Builds',    desc: 'Long atmospheric sounds — ballads, climax moments, show openers and closers.' },
+  saved:  { label: 'Saved',     desc: 'Your custom presets.' },
+};
+const GROUP_ORDER = ['hits', 'drops', 'builds'];
+
+let activeChip = null;
+
+function makeChip(preset, allPresets) {
+  const origIdx = allPresets.indexOf(preset);
+  const chip = document.createElement('span');
+  chip.className = 'preset-chip' + (preset.factory ? ' factory' : '');
+
+  const label = document.createElement('span');
+  label.textContent = preset.name;
+  chip.appendChild(label);
+
+  if (!preset.factory) {
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '\xd7';
+    del.title = 'Delete';
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      const up = getUserPresets();
+      up.splice(origIdx - FACTORY_PRESETS.length, 1);
+      saveUserPresets(up);
+      renderPresets();
+    });
+    chip.appendChild(del);
+  }
+
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeChip = preset.name;
+    applyPreset(preset);
+  });
+
+  if (activeChip === preset.name) chip.classList.add('active');
+  return chip;
+}
 
 function renderPresets() {
-  const container = document.getElementById('preset-chips');
-  if (!container) return;
-  container.innerHTML = '';
+  const bar = document.getElementById('preset-bar');
+  if (!bar) return;
+  bar.innerHTML = '';
+
   const userPresets = getUserPresets();
   const allPresets = [
     ...FACTORY_PRESETS,
     ...userPresets.map(p => ({ ...p, group: 'saved' })),
   ];
-  const visible = allPresets.filter(p => {
-    if (activeTab === 'all') return p.group !== 'saved';
-    if (activeTab === 'saved') return p.group === 'saved';
-    return p.group === activeTab;
+
+  const groups = [...GROUP_ORDER, ...(userPresets.length ? ['saved'] : [])];
+  groups.forEach(gid => {
+    const meta = GROUP_META[gid];
+    const presets = allPresets.filter(p => p.group === gid);
+    if (!presets.length) return;
+
+    const section = document.createElement('div');
+    section.className = 'preset-section';
+
+    const header = document.createElement('div');
+    header.className = 'preset-section-header';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'preset-section-label';
+    lbl.textContent = meta.label;
+
+    const desc = document.createElement('span');
+    desc.className = 'preset-section-desc';
+    desc.textContent = meta.desc;
+
+    header.appendChild(lbl);
+    header.appendChild(desc);
+
+    const chips = document.createElement('div');
+    chips.className = 'preset-chips';
+    presets.forEach(p => chips.appendChild(makeChip(p, allPresets)));
+
+    section.appendChild(header);
+    section.appendChild(chips);
+    bar.appendChild(section);
   });
-  if (visible.length === 0) {
-    const empty = document.createElement('span');
-    empty.style.cssText = 'font-size:11px;color:var(--muted);padding:4px 0;';
-    empty.textContent = activeTab === 'saved' ? 'No saved presets yet.' : 'No presets in this group.';
-    container.appendChild(empty);
-    return;
-  }
-  visible.forEach(preset => {
-    const origIdx = allPresets.indexOf(preset);
-    const chip = document.createElement('span');
-    chip.className = 'preset-chip' + (preset.factory ? ' factory' : '');
 
-    const label = document.createElement('span');
-    label.textContent = preset.name;
-    chip.appendChild(label);
+  // Save row always at bottom
+  const saveSection = document.createElement('div');
+  saveSection.className = 'preset-section';
+  saveSection.style.cssText = 'display:flex;gap:6px;align-items:center;border-bottom:none;';
+  saveSection.innerHTML = `
+    <input class="preset-name-input" type="text" id="preset-name-input" placeholder="Name and save current settings…" maxlength="30">
+    <button class="btn-save-preset" id="btn-save-preset">Save</button>
+  `;
+  bar.appendChild(saveSection);
 
-    if (!preset.factory) {
-      const del = document.createElement('button');
-      del.className = 'del-btn';
-      del.textContent = '\xd7';
-      del.title = 'Delete';
-      del.addEventListener('click', e => {
-        e.stopPropagation();
-        const up = getUserPresets();
-        up.splice(origIdx - FACTORY_PRESETS.length, 1);
-        saveUserPresets(up);
-        renderPresets();
-      });
-      chip.appendChild(del);
-    }
-
-    chip.addEventListener('click', () => {
-      container.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      applyPreset(preset);
-    });
-
-    container.appendChild(chip);
+  document.getElementById('btn-save-preset').addEventListener('click', () => {
+    const input = document.getElementById('preset-name-input');
+    const name  = input.value.trim();
+    if (!name) { input.focus(); return; }
+    const preset = {
+      name,
+      noteIdx: parseInt(document.getElementById('sel-note').value),
+      noteOct: parseInt(document.getElementById('sel-oct').value),
+      params: { ...state },
+    };
+    const up = getUserPresets();
+    const existing = up.findIndex(p => p.name === name);
+    if (existing >= 0) up[existing] = preset; else up.push(preset);
+    saveUserPresets(up);
+    input.value = '';
+    activeChip = name;
+    renderPresets();
+    setStatus(`Saved preset "${name}"`, 'ok');
   });
 }
-
-document.getElementById('preset-tabs').addEventListener('click', e => {
-  const tab = e.target.closest('.preset-tab');
-  if (!tab) return;
-  activeTab = tab.dataset.tab;
-  document.querySelectorAll('.preset-tab').forEach(t => t.classList.toggle('active', t === tab));
-  renderPresets();
-});
-
-document.getElementById('btn-save-preset').addEventListener('click', () => {
-  const input = document.getElementById('preset-name-input');
-  const name  = input.value.trim();
-  if (!name) { input.focus(); return; }
-  const preset = {
-    name,
-    noteIdx: parseInt(document.getElementById('sel-note').value),
-    noteOct: parseInt(document.getElementById('sel-oct').value),
-    params: { ...state },
-  };
-  const up = getUserPresets();
-  const existing = up.findIndex(p => p.name === name);
-  if (existing >= 0) up[existing] = preset; else up.push(preset);
-  saveUserPresets(up);
-  input.value = '';
-  renderPresets();
-  setStatus(`Saved preset "${name}"`, 'ok');
-});
 
 // ─── Hero banner canvas ────────────────────────────────────────────
 function drawHero(clipFrac) {
