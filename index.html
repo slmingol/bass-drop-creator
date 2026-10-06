@@ -894,7 +894,7 @@ const LAYERS = [
     params: [
       { id: 'preAttack',  label: 'Build-up',    unit: 's', min: 0,   max: 4,  step: 0.1,  def: 0.0,   simple: true, hint: 'Volume swell before the drop. 0 = starts at full level. 1–2s builds tension. Mirrors the volume automation curve in the DAW tutorial approach.' },
       { id: 'duration',   label: 'Duration',    unit: 's', min: 1,   max: 12, step: 0.5,  def: 6.0,   simple: true, hint: 'Total sample length. 4–8s covers most use cases; longer = bigger file.' },
-      { id: 'drive',      label: 'Drive',       unit: '',  min: 1,   max: 5,  step: 0.05, def: 2.2,   simple: true, hint: 'tanh saturation. 1 = clean, 2–3 = warm harmonic color, 4+ = heavy. Applied after normalize.' },
+      { id: 'drive',      label: 'Drive',       unit: '',  min: 1,   max: 5,  step: 0.05, def: 1.5,   simple: true, hint: 'tanh saturation. 1 = clean, 1.5–2 = warm, 2.5–3 = gritty, 4+ = heavy distortion. Applied after normalize.' },
       { id: 'gain',       label: 'Gain',        unit: '',  min: 0.1, max: 2,  step: 0.05, def: 1.0,   hint: 'Post-saturation output trim. Values >1.0 push into hard clipping. Usually leave at 1.0.' },
       { id: 'sampleRate', label: 'Sample Rate', type: 'select',
         options: [{value: 44100, label: '44.1 kHz'}, {value: 48000, label: '48 kHz'}],
@@ -1208,15 +1208,21 @@ function synthesize(p) {
                : u;                                                   // Exponential (default)
       const fr = p.sweepStart * Math.exp(logRatio * su);
       ph += 2 * Math.PI * fr * dt;
-      buf[i] += Math.sin(ph) * Math.exp(-t * p.sweepDecay) * p.sweepVol;
+      // Fade sweep out after it settles — prevents beating with sub at same freq
+      const settleFade = t < p.sweepTime ? 1 : Math.exp(-(t - p.sweepTime) * 8);
+      buf[i] += Math.sin(ph) * Math.exp(-t * p.sweepDecay) * p.sweepVol * settleFade;
     }
   }
 
-  // Punch — two sines (100 + 80 Hz) with fast attack + decay
-  for (let i = 0; i < N; i++) {
-    const t   = i * dt;
-    const env = Math.exp(-t * p.punchDecay) * (1 - Math.exp(-t * 120));
-    buf[i] += (Math.sin(2 * Math.PI * 100 * t) + Math.sin(2 * Math.PI * 80 * t)) * env * p.punchVol;
+  // Punch — 2nd + 3rd harmonic of sub freq, fast attack + decay
+  {
+    const p2 = p.subFreq * 2;
+    const p3 = p.subFreq * 3;
+    for (let i = 0; i < N; i++) {
+      const t   = i * dt;
+      const env = Math.exp(-t * p.punchDecay) * (1 - Math.exp(-t * 120));
+      buf[i] += (Math.sin(2 * Math.PI * p2 * t) + Math.sin(2 * Math.PI * p3 * t)) * env * p.punchVol;
+    }
   }
 
   // Rumble — 4th-order lowpass filtered noise (two cascaded biquads)
@@ -1537,11 +1543,11 @@ document.querySelectorAll('input[type=range], .param-select').forEach(el =>
 const FACTORY_PRESETS = [
   {
     name: 'Default',       factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
-    params: { subFreq: 40, subDecay: 1.0, subVol: 0.9, sweepStart: 160, sweepEnd: 35, sweepTime: 2.5, sweepDecay: 0.9, sweepVol: 1.0, sweepShape: 0, punchDecay: 3.5, punchVol: 0.4, rumbleCutoff: 70, rumbleDecay: 1.2, rumbleVol: 0.25, bodyFreq: 90, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 6.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 40, subDecay: 1.0, subVol: 0.9, sweepStart: 160, sweepEnd: 35, sweepTime: 2.5, sweepDecay: 0.9, sweepVol: 1.0, sweepShape: 0, punchDecay: 3.5, punchVol: 0.4, rumbleCutoff: 70, rumbleDecay: 1.2, rumbleVol: 0.25, bodyFreq: 90, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 6.0, drive: 1.5, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Heavy Club',     factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
-    params: { subFreq: 58, subDecay: 0.85, subVol: 0.88, sweepStart: 232, sweepEnd: 58, sweepTime: 1.8, sweepDecay: 0.75, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 87, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 0, duration: 5.0, drive: 3.8, gain: 0.9, sampleRate: 44100 },
+    params: { subFreq: 58, subDecay: 0.85, subVol: 0.88, sweepStart: 232, sweepEnd: 58, sweepTime: 1.8, sweepDecay: 0.75, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 87, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 0, duration: 5.0, drive: 2.5, gain: 0.9, sampleRate: 44100 },
   },
   {
     name: 'Clean Sub',      factory: true, group: 'hits',   noteIdx: 0,  noteOct: 2,
@@ -1549,27 +1555,27 @@ const FACTORY_PRESETS = [
   },
   {
     name: 'Tight Punch',    factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
-    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.78, sweepStart: 330, sweepEnd: 82.5, sweepTime: 1.1, sweepDecay: 1.5, sweepVol: 0.85, sweepShape: 0, punchDecay: 6.5, punchVol: 0.58, rumbleCutoff: 105, rumbleDecay: 2.0, rumbleVol: 0.18, bodyFreq: 124, bodyDecay: 3.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.78, sweepStart: 330, sweepEnd: 82.5, sweepTime: 1.1, sweepDecay: 1.5, sweepVol: 0.85, sweepShape: 0, punchDecay: 6.5, punchVol: 0.58, rumbleCutoff: 105, rumbleDecay: 2.0, rumbleVol: 0.18, bodyFreq: 124, bodyDecay: 3.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Bass Hit',       factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
-    params: { subFreq: 58, subDecay: 0.35, subVol: 0.88, sweepStart: 116, sweepEnd: 58, sweepTime: 0.25, sweepDecay: 2.5, sweepVol: 0.6, sweepShape: 0, punchDecay: 1.8, punchVol: 0.7, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.28, bodyFreq: 87, bodyDecay: 2.2, bodyVol: 0.45, preAttack: 0, duration: 4.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 58, subDecay: 0.35, subVol: 0.88, sweepStart: 116, sweepEnd: 58, sweepTime: 0.25, sweepDecay: 2.5, sweepVol: 0.6, sweepShape: 0, punchDecay: 1.8, punchVol: 0.7, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.28, bodyFreq: 87, bodyDecay: 2.2, bodyVol: 0.45, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: '808 Punch',      factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
-    params: { subFreq: 82.5, subDecay: 1.2, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 2.0, sweepVol: 0.72, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 85, rumbleDecay: 1.8, rumbleVol: 0.2, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.35, preAttack: 0, duration: 3.5, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 82.5, subDecay: 1.2, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 2.0, sweepVol: 0.72, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 85, rumbleDecay: 1.8, rumbleVol: 0.2, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.35, preAttack: 0, duration: 3.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Hip Hop Sub',    factory: true, group: 'hits',   noteIdx: 0,  noteOct: 2,
-    params: { subFreq: 65.5, subDecay: 0.9, subVol: 0.88, sweepStart: 131, sweepEnd: 65.5, sweepTime: 0.5, sweepDecay: 2.5, sweepVol: 0.65, sweepShape: 0, punchDecay: 2.8, punchVol: 0.5, rumbleCutoff: 65, rumbleDecay: 1.5, rumbleVol: 0.15, bodyFreq: 98, bodyDecay: 2.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 65.5, subDecay: 0.9, subVol: 0.88, sweepStart: 131, sweepEnd: 65.5, sweepTime: 0.5, sweepDecay: 2.5, sweepVol: 0.65, sweepShape: 0, punchDecay: 2.8, punchVol: 0.5, rumbleCutoff: 65, rumbleDecay: 1.5, rumbleVol: 0.15, bodyFreq: 98, bodyDecay: 2.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 1.5, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Cinematic Boom', factory: true, group: 'hits',   noteIdx: 4,  noteOct: 1,
-    params: { subFreq: 41.5, subDecay: 0.65, subVol: 0.9, sweepStart: 166, sweepEnd: 41.5, sweepTime: 0.55, sweepDecay: 1.5, sweepVol: 0.82, sweepShape: 0, punchDecay: 1.5, punchVol: 0.82, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.38, bodyFreq: 62, bodyDecay: 1.2, bodyVol: 0.48, preAttack: 0, duration: 3.5, drive: 3.2, gain: 0.95, sampleRate: 44100 },
+    params: { subFreq: 41.5, subDecay: 0.65, subVol: 0.9, sweepStart: 166, sweepEnd: 41.5, sweepTime: 0.55, sweepDecay: 1.5, sweepVol: 0.82, sweepShape: 0, punchDecay: 1.5, punchVol: 0.82, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.38, bodyFreq: 62, bodyDecay: 1.2, bodyVol: 0.48, preAttack: 0, duration: 3.5, drive: 2.2, gain: 0.95, sampleRate: 44100 },
   },
   {
     name: 'Deep Sub',       factory: true, group: 'sweeps', noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.55, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 3.5, sweepDecay: 0.55, sweepVol: 0.95, sweepShape: 0, punchDecay: 5.0, punchVol: 0.2, rumbleCutoff: 45, rumbleDecay: 0.9, rumbleVol: 0.3, bodyFreq: 74, bodyDecay: 2.5, bodyVol: 0.22, preAttack: 0, duration: 8.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 49, subDecay: 0.55, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 3.5, sweepDecay: 0.55, sweepVol: 0.95, sweepShape: 0, punchDecay: 5.0, punchVol: 0.2, rumbleCutoff: 45, rumbleDecay: 0.9, rumbleVol: 0.3, bodyFreq: 74, bodyDecay: 2.5, bodyVol: 0.22, preAttack: 0, duration: 8.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Pure Sub',       factory: true, group: 'sweeps', noteIdx: 0,  noteOct: 1,
@@ -1597,11 +1603,11 @@ const FACTORY_PRESETS = [
   },
   {
     name: 'Show Opener',    factory: true, group: 'mb',     noteIdx: 4,  noteOct: 1,
-    params: { subFreq: 41.5, subDecay: 0.55, subVol: 0.88, sweepStart: 330, sweepEnd: 41.5, sweepTime: 0.4, sweepDecay: 1.2, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 55, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.4, preAttack: 0, duration: 4.0, drive: 3.0, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 41.5, subDecay: 0.55, subVol: 0.88, sweepStart: 330, sweepEnd: 41.5, sweepTime: 0.4, sweepDecay: 1.2, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 55, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.4, preAttack: 0, duration: 4.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Drill Accent',   factory: true, group: 'mb',     noteIdx: 4,  noteOct: 2,
-    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.82, sweepStart: 250, sweepEnd: 82.5, sweepTime: 0.2, sweepDecay: 3.0, sweepVol: 0.7, sweepShape: 0, punchDecay: 3.5, punchVol: 0.8, rumbleCutoff: 90, rumbleDecay: 2.0, rumbleVol: 0.15, bodyFreq: 124, bodyDecay: 2.5, bodyVol: 0.25, preAttack: 0, duration: 1.5, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.82, sweepStart: 250, sweepEnd: 82.5, sweepTime: 0.2, sweepDecay: 3.0, sweepVol: 0.7, sweepShape: 0, punchDecay: 3.5, punchVol: 0.8, rumbleCutoff: 90, rumbleDecay: 2.0, rumbleVol: 0.15, bodyFreq: 124, bodyDecay: 2.5, bodyVol: 0.25, preAttack: 0, duration: 1.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Ballad Sub',     factory: true, group: 'mb',     noteIdx: 9,  noteOct: 1,
@@ -1609,31 +1615,31 @@ const FACTORY_PRESETS = [
   },
   {
     name: 'Climax Hit',     factory: true, group: 'mb',     noteIdx: 11, noteOct: 1,
-    params: { subFreq: 61.5, subDecay: 0.45, subVol: 0.92, sweepStart: 370, sweepEnd: 61.5, sweepTime: 0.5, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 1.8, punchVol: 0.85, rumbleCutoff: 70, rumbleDecay: 0.8, rumbleVol: 0.35, bodyFreq: 92, bodyDecay: 2.0, bodyVol: 0.45, preAttack: 0, duration: 5.0, drive: 3.5, gain: 0.95, sampleRate: 44100 },
+    params: { subFreq: 61.5, subDecay: 0.45, subVol: 0.92, sweepStart: 370, sweepEnd: 61.5, sweepTime: 0.5, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 1.8, punchVol: 0.85, rumbleCutoff: 70, rumbleDecay: 0.8, rumbleVol: 0.35, bodyFreq: 92, bodyDecay: 2.0, bodyVol: 0.45, preAttack: 0, duration: 5.0, drive: 2.5, gain: 0.95, sampleRate: 44100 },
   },
   {
     name: 'Show Closer',    factory: true, group: 'mb',     noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 32.5, subDecay: 0.3, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 1, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.5, rumbleVol: 0.4, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.4, preAttack: 0.5, duration: 8.0, drive: 3.0, gain: 0.95, sampleRate: 44100 },
+    params: { subFreq: 32.5, subDecay: 0.3, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 1, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.5, rumbleVol: 0.4, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.4, preAttack: 0.5, duration: 8.0, drive: 2.2, gain: 0.95, sampleRate: 44100 },
   },
   {
     name: 'Riser Drop',     factory: true, group: 'mb',     noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.35, subVol: 0.88, sweepStart: 392, sweepEnd: 49, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.95, sweepShape: 1, punchDecay: 3.5, punchVol: 0.45, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.3, preAttack: 4.0, duration: 10.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 49, subDecay: 0.35, subVol: 0.88, sweepStart: 392, sweepEnd: 49, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.95, sweepShape: 1, punchDecay: 3.5, punchVol: 0.45, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.3, preAttack: 4.0, duration: 10.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Brass Tail',     factory: true, group: 'mb',     noteIdx: 11, noteOct: 1,
-    params: { subFreq: 61.5, subDecay: 0.8, subVol: 0.85, sweepStart: 185, sweepEnd: 61.5, sweepTime: 0.3, sweepDecay: 1.5, sweepVol: 0.75, sweepShape: 0, punchDecay: 2.5, punchVol: 0.7, rumbleCutoff: 75, rumbleDecay: 1.2, rumbleVol: 0.2, bodyFreq: 92, bodyDecay: 1.5, bodyVol: 0.35, preAttack: 0, duration: 2.5, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 61.5, subDecay: 0.8, subVol: 0.85, sweepStart: 185, sweepEnd: 61.5, sweepTime: 0.3, sweepDecay: 1.5, sweepVol: 0.75, sweepShape: 0, punchDecay: 2.5, punchVol: 0.7, rumbleCutoff: 75, rumbleDecay: 1.2, rumbleVol: 0.2, bodyFreq: 92, bodyDecay: 1.5, bodyVol: 0.35, preAttack: 0, duration: 2.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Beat Drop',      factory: true, group: 'mb',     noteIdx: 4,  noteOct: 2,
-    params: { subFreq: 82.5, subDecay: 0.9, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 1.8, sweepVol: 0.8, sweepShape: 0, punchDecay: 2.2, punchVol: 0.7, rumbleCutoff: 85, rumbleDecay: 1.5, rumbleVol: 0.22, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.32, preAttack: 0, duration: 3.0, drive: 2.3, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 82.5, subDecay: 0.9, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 1.8, sweepVol: 0.8, sweepShape: 0, punchDecay: 2.2, punchVol: 0.7, rumbleCutoff: 85, rumbleDecay: 1.5, rumbleVol: 0.22, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.32, preAttack: 0, duration: 3.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Pit Impact',     factory: true, group: 'mb',     noteIdx: 9,  noteOct: 1,
-    params: { subFreq: 55, subDecay: 1.5, subVol: 0.8, sweepStart: 220, sweepEnd: 55, sweepTime: 0.18, sweepDecay: 2.5, sweepVol: 0.72, sweepShape: 0, punchDecay: 3.0, punchVol: 0.82, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.18, bodyFreq: 82.5, bodyDecay: 2.0, bodyVol: 0.28, preAttack: 0, duration: 2.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 55, subDecay: 1.5, subVol: 0.8, sweepStart: 220, sweepEnd: 55, sweepTime: 0.18, sweepDecay: 2.5, sweepVol: 0.72, sweepShape: 0, punchDecay: 3.0, punchVol: 0.82, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.18, bodyFreq: 82.5, bodyDecay: 2.0, bodyVol: 0.28, preAttack: 0, duration: 2.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Field Sub',      factory: true, group: 'mb',     noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 32.5, subDecay: 0.35, subVol: 0.9, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.0, sweepDecay: 0.6, sweepVol: 0.88, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 42, rumbleDecay: 0.6, rumbleVol: 0.42, bodyFreq: 49, bodyDecay: 2.5, bodyVol: 0.38, preAttack: 0, duration: 6.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+    params: { subFreq: 32.5, subDecay: 0.35, subVol: 0.9, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.0, sweepDecay: 0.6, sweepVol: 0.88, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 42, rumbleDecay: 0.6, rumbleVol: 0.42, bodyFreq: 49, bodyDecay: 2.5, bodyVol: 0.38, preAttack: 0, duration: 6.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'High Thin',      factory: true, group: 'hits',   noteIdx: 7,  noteOct: 2,
