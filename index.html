@@ -905,6 +905,13 @@ function loadState() {
   } catch(e) {}
 }
 
+// ─── Auto-regen on param change ──────────────────────────────────
+let regenTimer = null;
+function scheduleRegen() {
+  clearTimeout(regenTimer);
+  regenTimer = setTimeout(() => { if (!isPlaying) generate(); }, 400);
+}
+
 // ─── Build UI ────────────────────────────────────────────────────
 const grid = document.getElementById('layers-grid');
 
@@ -975,6 +982,7 @@ LAYERS.forEach(layer => {
         lastResult = null;
         saveState();
         updateHeaderNote();
+        scheduleRegen();
       });
     } else {
       inputEl = document.createElement('input');
@@ -992,6 +1000,7 @@ LAYERS.forEach(layer => {
         valEl.textContent = fmt(val, p);
         updateSlider(inputEl, p);
         saveState();
+        scheduleRegen();
       });
     }
 
@@ -1066,6 +1075,7 @@ document.getElementById('btn-apply').addEventListener('click', () => {
 
   setStatus(`Applied ${NOTE_DISP[idx]}${oct} (${freq.toFixed(1)} Hz) → sub: ${vals.subFreq} Hz`, 'ok');
   saveState();
+  scheduleRegen();
 });
 
 document.getElementById('btn-reset-all').addEventListener('click', () => {
@@ -1076,8 +1086,10 @@ document.getElementById('btn-reset-all').addEventListener('click', () => {
     if (slider) { slider.value = p.def; updateSlider(slider, p); }
     if (valEl)  valEl.textContent = fmt(p.def, p);
   }));
+  lastResult = null;
   setStatus('All parameters reset to defaults.', '');
   saveState();
+  scheduleRegen();
 });
 
 // ─── Status helper ────────────────────────────────────────────────
@@ -1542,6 +1554,7 @@ function applyPreset(preset) {
   lastResult = null;
   saveState();
   updateHeaderNote();
+  scheduleRegen();
 }
 
 function renderPresets() {
