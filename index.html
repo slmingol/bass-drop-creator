@@ -1288,9 +1288,9 @@ function startPlayhead() {
     const ctx = cv.getContext('2d');
     const x   = Math.round(frac * cv.width);
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.85)';
     ctx.lineWidth = Math.max(1, cv.width / 600);
-    ctx.shadowColor = '#fff';
+    ctx.shadowColor = '#000';
     ctx.shadowBlur  = 4;
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
     ctx.restore();
