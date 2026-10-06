@@ -598,6 +598,23 @@ input[type=range]::-moz-range-track {
 .preset-chip:hover { border-color: var(--sub); }
 .preset-chip.active { border-color: var(--sub); background: color-mix(in srgb, var(--sub) 14%, var(--card)); color: var(--sub); }
 .preset-chip.factory { font-style: italic; }
+#preset-tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 260px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--fg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+#preset-tooltip.visible { opacity: 1; }
 .del-btn {
   background: none;
   border: none;
@@ -739,6 +756,8 @@ input[type=range]::-moz-range-track {
     </div>
   </div>
 </div>
+
+<div id="preset-tooltip"></div>
 
 <!-- Preset bar -->
 <details class="preset-details" id="preset-details" open>
@@ -1587,163 +1606,203 @@ document.querySelectorAll('input[type=range], .param-select').forEach(el =>
 const FACTORY_PRESETS = [
   {
     name: 'Default',       factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
+    desc: 'Balanced starting point. All five layers active, moderate 2.5s sweep. Bb1.',
     params: { subFreq: 40, subDecay: 1.0, subVol: 0.9, sweepStart: 160, sweepEnd: 35, sweepTime: 2.5, sweepDecay: 0.9, sweepVol: 1.0, sweepShape: 0, punchDecay: 3.5, punchVol: 0.4, rumbleCutoff: 70, rumbleDecay: 1.2, rumbleVol: 0.25, bodyFreq: 90, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 6.0, drive: 1.5, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Heavy Club',     factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
+    desc: 'Darker, heavier club hit. Bb1, strong punch and thick body.',
     params: { subFreq: 58, subDecay: 0.85, subVol: 0.88, sweepStart: 232, sweepEnd: 58, sweepTime: 1.8, sweepDecay: 0.75, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 87, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 0, duration: 5.0, drive: 2.5, gain: 0.9, sampleRate: 44100 },
   },
   {
     name: 'Clean Sub',      factory: true, group: 'hits',   noteIdx: 0,  noteOct: 2,
+    desc: 'Minimal distortion, soft punch, studio-clean tone. C2 (66 Hz), 6s.',
     params: { subFreq: 65.5, subDecay: 1.0, subVol: 0.85, sweepStart: 262, sweepEnd: 65.5, sweepTime: 2.2, sweepDecay: 1.0, sweepVol: 0.88, sweepShape: 0, punchDecay: 4.5, punchVol: 0.22, rumbleCutoff: 50, rumbleDecay: 1.5, rumbleVol: 0.12, bodyFreq: 98, bodyDecay: 2.2, bodyVol: 0.28, preAttack: 0, duration: 6.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Tight Punch',    factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
+    desc: 'E2 (83 Hz). Fast 1.1s sweep, strong punch transient, 4s total.',
     params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.78, sweepStart: 330, sweepEnd: 82.5, sweepTime: 1.1, sweepDecay: 1.5, sweepVol: 0.85, sweepShape: 0, punchDecay: 6.5, punchVol: 0.58, rumbleCutoff: 105, rumbleDecay: 2.0, rumbleVol: 0.18, bodyFreq: 124, bodyDecay: 3.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Bass Hit',       factory: true, group: 'hits',   noteIdx: 10, noteOct: 1,
+    desc: 'Ultra-short 0.25s sweep — immediate punchy thud. Bb1, 4s.',
     params: { subFreq: 58, subDecay: 0.35, subVol: 0.88, sweepStart: 116, sweepEnd: 58, sweepTime: 0.25, sweepDecay: 2.5, sweepVol: 0.6, sweepShape: 0, punchDecay: 1.8, punchVol: 0.7, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.28, bodyFreq: 87, bodyDecay: 2.2, bodyVol: 0.45, preAttack: 0, duration: 4.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: '808 Punch',      factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
+    desc: '808-style kick. Fast 0.35s sweep, balanced punch. E2 (83 Hz), 3.5s.',
     params: { subFreq: 82.5, subDecay: 1.2, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 2.0, sweepVol: 0.72, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 85, rumbleDecay: 1.8, rumbleVol: 0.2, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.35, preAttack: 0, duration: 3.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Hip Hop Sub',    factory: true, group: 'hits',  noteIdx: 0,  noteOct: 2,
+    desc: 'Warm hip-hop bass. Short 0.5s sweep, low drive. C2 (66 Hz), 4s.',
     params: { subFreq: 65.5, subDecay: 0.9, subVol: 0.88, sweepStart: 131, sweepEnd: 65.5, sweepTime: 0.5, sweepDecay: 2.5, sweepVol: 0.65, sweepShape: 0, punchDecay: 2.8, punchVol: 0.5, rumbleCutoff: 65, rumbleDecay: 1.5, rumbleVol: 0.15, bodyFreq: 98, bodyDecay: 2.0, bodyVol: 0.3, preAttack: 0, duration: 4.0, drive: 1.5, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Cinematic Boom', factory: true, group: 'hits',  noteIdx: 4,  noteOct: 1,
+    desc: 'Film trailer impact. Heavy rumble and body, fast sweep. E1 (41 Hz), 3.5s.',
     params: { subFreq: 41.5, subDecay: 0.65, subVol: 0.9, sweepStart: 166, sweepEnd: 41.5, sweepTime: 0.55, sweepDecay: 1.5, sweepVol: 0.82, sweepShape: 0, punchDecay: 1.5, punchVol: 0.82, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.38, bodyFreq: 62, bodyDecay: 1.2, bodyVol: 0.48, preAttack: 0, duration: 3.5, drive: 2.2, gain: 0.95, sampleRate: 44100 },
   },
   {
-    name: 'Deep Sub',       factory: true, group: 'drops',  noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.55, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 3.5, sweepDecay: 0.55, sweepVol: 0.95, sweepShape: 0, punchDecay: 5.0, punchVol: 0.2, rumbleCutoff: 45, rumbleDecay: 0.9, rumbleVol: 0.3, bodyFreq: 74, bodyDecay: 2.5, bodyVol: 0.22, preAttack: 0, duration: 8.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Pure Sub',       factory: true, group: 'drops',  noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 33, subDecay: 0.4, subVol: 0.95, sweepStart: 132, sweepEnd: 33, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.9, sweepShape: 1, punchDecay: 8.0, punchVol: 0.06, rumbleCutoff: 35, rumbleDecay: 0.6, rumbleVol: 0.06, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.08, preAttack: 2.0, duration: 8.0, drive: 1.1, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Sub Sweep',      factory: true, group: 'drops',  noteIdx: 10, noteOct: 1,
-    params: { subFreq: 58, subDecay: 0.45, subVol: 0.92, sweepStart: 464, sweepEnd: 58, sweepTime: 4.5, sweepDecay: 0.42, sweepVol: 0.95, sweepShape: 1, punchDecay: 7.0, punchVol: 0.1, rumbleCutoff: 45, rumbleDecay: 0.6, rumbleVol: 0.08, bodyFreq: 87, bodyDecay: 3.5, bodyVol: 0.1, preAttack: 1.5, duration: 8.0, drive: 1.4, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Epic Build',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.38, subVol: 0.9, sweepStart: 392, sweepEnd: 49, sweepTime: 5.0, sweepDecay: 0.35, sweepVol: 1.0, sweepShape: 1, punchDecay: 4.0, punchVol: 0.3, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.22, bodyFreq: 74, bodyDecay: 4.5, bodyVol: 0.28, preAttack: 3.0, duration: 10.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Dark Descent',   factory: true, group: 'drops',  noteIdx: 9,  noteOct: 1,
-    params: { subFreq: 55, subDecay: 0.3, subVol: 0.88, sweepStart: 440, sweepEnd: 55, sweepTime: 6.0, sweepDecay: 0.28, sweepVol: 0.92, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 55, rumbleDecay: 0.38, rumbleVol: 0.38, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.2, preAttack: 2.5, duration: 10.0, drive: 1.6, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Downlift',       factory: true, group: 'drops',  noteIdx: 4,  noteOct: 2,
-    params: { subFreq: 82.5, subDecay: 0.4, subVol: 0.5, sweepStart: 420, sweepEnd: 82.5, sweepTime: 1.5, sweepDecay: 0.7, sweepVol: 0.95, sweepShape: 2, punchDecay: 5.0, punchVol: 0.15, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.08, bodyFreq: 124, bodyDecay: 1.5, bodyVol: 0.2, preAttack: 0, duration: 4.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Sub Swell',      factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.2, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 2.5, sweepDecay: 0.35, sweepVol: 0.82, sweepShape: 1, punchDecay: 8.0, punchVol: 0.08, rumbleCutoff: 52, rumbleDecay: 0.4, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.35, preAttack: 1.5, duration: 6.0, drive: 1.6, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Show Opener',    factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
-    params: { subFreq: 41.5, subDecay: 0.55, subVol: 0.88, sweepStart: 330, sweepEnd: 41.5, sweepTime: 0.4, sweepDecay: 1.2, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 55, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.4, preAttack: 0, duration: 4.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'Drill Accent',   factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
+    desc: 'Ultra-short 1.5s hit for drill set changes and visual accents. E2.',
     params: { subFreq: 82.5, subDecay: 1.8, subVol: 0.82, sweepStart: 250, sweepEnd: 82.5, sweepTime: 0.2, sweepDecay: 3.0, sweepVol: 0.7, sweepShape: 0, punchDecay: 3.5, punchVol: 0.8, rumbleCutoff: 90, rumbleDecay: 2.0, rumbleVol: 0.15, bodyFreq: 124, bodyDecay: 2.5, bodyVol: 0.25, preAttack: 0, duration: 1.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
-    name: 'Ballad Sub',     factory: true, group: 'builds', noteIdx: 9,  noteOct: 1,
-    params: { subFreq: 55, subDecay: 0.28, subVol: 0.9, sweepStart: 220, sweepEnd: 55, sweepTime: 5.0, sweepDecay: 0.3, sweepVol: 0.88, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 50, rumbleDecay: 0.5, rumbleVol: 0.15, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.3, preAttack: 2.5, duration: 8.0, drive: 1.4, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Climax Hit',     factory: true, group: 'builds', noteIdx: 11, noteOct: 1,
-    params: { subFreq: 61.5, subDecay: 0.45, subVol: 0.92, sweepStart: 370, sweepEnd: 61.5, sweepTime: 0.5, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 1.8, punchVol: 0.85, rumbleCutoff: 70, rumbleDecay: 0.8, rumbleVol: 0.35, bodyFreq: 92, bodyDecay: 2.0, bodyVol: 0.45, preAttack: 0, duration: 5.0, drive: 2.5, gain: 0.95, sampleRate: 44100 },
-  },
-  {
-    name: 'Show Closer',    factory: true, group: 'builds', noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 32.5, subDecay: 0.3, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 1, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.5, rumbleVol: 0.4, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.4, preAttack: 0.5, duration: 8.0, drive: 2.2, gain: 0.95, sampleRate: 44100 },
-  },
-  {
-    name: 'Riser Drop',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.35, subVol: 0.88, sweepStart: 392, sweepEnd: 49, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.95, sweepShape: 1, punchDecay: 3.5, punchVol: 0.45, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.3, preAttack: 4.0, duration: 10.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'Brass Tail',     factory: true, group: 'hits',   noteIdx: 11, noteOct: 1,
+    desc: 'Sits under a brass chord resolution. Short 2.5s, B1 (62 Hz).',
     params: { subFreq: 61.5, subDecay: 0.8, subVol: 0.85, sweepStart: 185, sweepEnd: 61.5, sweepTime: 0.3, sweepDecay: 1.5, sweepVol: 0.75, sweepShape: 0, punchDecay: 2.5, punchVol: 0.7, rumbleCutoff: 75, rumbleDecay: 1.2, rumbleVol: 0.2, bodyFreq: 92, bodyDecay: 1.5, bodyVol: 0.35, preAttack: 0, duration: 2.5, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Beat Drop',      factory: true, group: 'hits',   noteIdx: 4,  noteOct: 2,
+    desc: 'Punchy E2 beat drop hit with fast clean sweep. 3s.',
     params: { subFreq: 82.5, subDecay: 0.9, subVol: 0.85, sweepStart: 330, sweepEnd: 82.5, sweepTime: 0.35, sweepDecay: 1.8, sweepVol: 0.8, sweepShape: 0, punchDecay: 2.2, punchVol: 0.7, rumbleCutoff: 85, rumbleDecay: 1.5, rumbleVol: 0.22, bodyFreq: 124, bodyDecay: 1.8, bodyVol: 0.32, preAttack: 0, duration: 3.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Pit Impact',     factory: true, group: 'hits',   noteIdx: 9,  noteOct: 1,
+    desc: 'Front ensemble thud from pit/synthesizer. Heavy punch, very short 2s. A1.',
     params: { subFreq: 55, subDecay: 1.5, subVol: 0.8, sweepStart: 220, sweepEnd: 55, sweepTime: 0.18, sweepDecay: 2.5, sweepVol: 0.72, sweepShape: 0, punchDecay: 3.0, punchVol: 0.82, rumbleCutoff: 80, rumbleDecay: 1.8, rumbleVol: 0.18, bodyFreq: 82.5, bodyDecay: 2.0, bodyVol: 0.28, preAttack: 0, duration: 2.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
   },
   {
-    name: 'Field Sub',      factory: true, group: 'drops',  noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 32.5, subDecay: 0.35, subVol: 0.9, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.0, sweepDecay: 0.6, sweepVol: 0.88, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 42, rumbleDecay: 0.6, rumbleVol: 0.42, bodyFreq: 49, bodyDecay: 2.5, bodyVol: 0.38, preAttack: 0, duration: 6.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'DTX Impact',     factory: true, group: 'hits',   noteIdx: 9,  noteOct: 1,
+    desc: 'Optimized for DTX pad triggering. Ultra-short 1s, instant attack. A1 (55 Hz).',
     params: { subFreq: 55, subDecay: 2.5, subVol: 0.78, sweepStart: 220, sweepEnd: 55, sweepTime: 0.12, sweepDecay: 3.5, sweepVol: 0.65, sweepShape: 0, punchDecay: 2.2, punchVol: 0.92, rumbleCutoff: 75, rumbleDecay: 2.5, rumbleVol: 0.22, bodyFreq: 82.5, bodyDecay: 2.8, bodyVol: 0.3, preAttack: 0, duration: 1.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
   },
   {
-    name: 'Rise & Hit',     factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
-    params: { subFreq: 41.5, subDecay: 0.5, subVol: 0.88, sweepStart: 332, sweepEnd: 41.5, sweepTime: 0.35, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 1, punchDecay: 1.8, punchVol: 0.82, rumbleCutoff: 55, rumbleDecay: 0.8, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 2.0, duration: 5.5, drive: 2.2, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Sub Drop',          factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
-    params: { subFreq: 18, subDecay: 0.18, subVol: 0.4, sweepStart: 120, sweepEnd: 18, sweepTime: 2.5, sweepDecay: 0.22, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.6, rumbleCutoff: 28, rumbleDecay: 0.25, rumbleVol: 0.4, bodyFreq: 40, bodyDecay: 2.0, bodyVol: 0.15, preAttack: 0, duration: 5.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Massive Sub Drop',  factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
-    params: { subFreq: 12, subDecay: 0.15, subVol: 0.35, sweepStart: 150, sweepEnd: 12, sweepTime: 3.0, sweepDecay: 0.18, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.0, punchVol: 0.65, rumbleCutoff: 22, rumbleDecay: 0.2, rumbleVol: 0.45, bodyFreq: 40, bodyDecay: 2.5, bodyVol: 0.12, preAttack: 0, duration: 6.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Quick Sub Drop',    factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
-    params: { subFreq: 15, subDecay: 0.3, subVol: 0.38, sweepStart: 110, sweepEnd: 15, sweepTime: 1.2, sweepDecay: 0.5, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.8, punchVol: 0.7, rumbleCutoff: 25, rumbleDecay: 0.35, rumbleVol: 0.38, bodyFreq: 40, bodyDecay: 1.5, bodyVol: 0.15, preAttack: 0, duration: 3.0, drive: 2.3, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'Aggressive Impact', factory: true, group: 'hits', noteIdx: 9,  noteOct: 2,
+    desc: 'High thin character (A2, 110 Hz). Aggressive but controlled. 3.5s.',
     params: { subFreq: 110, subDecay: 1.6, subVol: 0.7, sweepStart: 440, sweepEnd: 110, sweepTime: 0.25, sweepDecay: 2.0, sweepVol: 0.88, sweepShape: 0, punchDecay: 2.5, punchVol: 0.88, rumbleCutoff: 120, rumbleDecay: 2.2, rumbleVol: 0.1, bodyFreq: 165, bodyDecay: 1.8, bodyVol: 0.45, preAttack: 0, duration: 3.5, drive: 2.8, gain: 1.0, sampleRate: 44100 },
   },
   {
     name: 'Transition Hit', factory: true, group: 'hits',   noteIdx: 2,  noteOct: 2,
+    desc: 'Versatile 3s hit for movement and section transitions. D2 (74 Hz).',
     params: { subFreq: 73.5, subDecay: 0.8, subVol: 0.85, sweepStart: 294, sweepEnd: 73.5, sweepTime: 0.3, sweepDecay: 1.5, sweepVol: 0.8, sweepShape: 0, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 80, rumbleDecay: 1.2, rumbleVol: 0.22, bodyFreq: 110, bodyDecay: 1.5, bodyVol: 0.32, preAttack: 0, duration: 3.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
   },
   {
-    name: 'Guard Feature',  factory: true, group: 'builds', noteIdx: 7,  noteOct: 2,
-    params: { subFreq: 98, subDecay: 0.6, subVol: 0.82, sweepStart: 196, sweepEnd: 98, sweepTime: 1.0, sweepDecay: 1.0, sweepVol: 0.75, sweepShape: 1, punchDecay: 5.0, punchVol: 0.15, rumbleCutoff: 100, rumbleDecay: 1.0, rumbleVol: 0.08, bodyFreq: 147, bodyDecay: 2.5, bodyVol: 0.4, preAttack: 0.5, duration: 5.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'Drum Feature',   factory: true, group: 'hits',   noteIdx: 9,  noteOct: 1,
+    desc: 'Punch-dominant hit for percussion feature moments. A1 (55 Hz), 3s.',
     params: { subFreq: 55, subDecay: 1.0, subVol: 0.85, sweepStart: 220, sweepEnd: 55, sweepTime: 0.2, sweepDecay: 2.0, sweepVol: 0.72, sweepShape: 0, punchDecay: 1.8, punchVol: 0.88, rumbleCutoff: 70, rumbleDecay: 1.5, rumbleVol: 0.3, bodyFreq: 82.5, bodyDecay: 1.5, bodyVol: 0.3, preAttack: 0, duration: 3.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
   },
   {
-    name: 'Stadium Boom',   factory: true, group: 'builds', noteIdx: 0,  noteOct: 1,
-    params: { subFreq: 32.5, subDecay: 0.25, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 0.8, sweepDecay: 0.5, sweepVol: 0.88, sweepShape: 0, punchDecay: 2.0, punchVol: 0.6, rumbleCutoff: 38, rumbleDecay: 0.4, rumbleVol: 0.45, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.42, preAttack: 0, duration: 7.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Half-Time Sub',  factory: true, group: 'drops',  noteIdx: 7,  noteOct: 1,
-    params: { subFreq: 49, subDecay: 0.6, subVol: 0.88, sweepStart: 196, sweepEnd: 49, sweepTime: 0.6, sweepDecay: 1.2, sweepVol: 0.82, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.25, bodyFreq: 74, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 5.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
-  },
-  {
-    name: 'Lyrical Sub',    factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
-    params: { subFreq: 41.5, subDecay: 0.25, subVol: 0.92, sweepStart: 166, sweepEnd: 41.5, sweepTime: 2.0, sweepDecay: 0.5, sweepVol: 0.85, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 45, rumbleDecay: 0.5, rumbleVol: 0.12, bodyFreq: 62, bodyDecay: 4.0, bodyVol: 0.38, preAttack: 1.0, duration: 8.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
-  },
-  {
     name: 'High Thin',      factory: true, group: 'hits',   noteIdx: 7,  noteOct: 2,
+    desc: 'G2 (98 Hz). Thin, aggressive character. High drive (3.9). Dense attack decay.',
     params: { subFreq: 98, subDecay: 1.4, subVol: 0.72, sweepStart: 392, sweepEnd: 98, sweepTime: 0.28, sweepDecay: 2.2, sweepVol: 0.88, sweepShape: 0, punchDecay: 2.8, punchVol: 0.82, rumbleCutoff: 110, rumbleDecay: 2.0, rumbleVol: 0.12, bodyFreq: 147, bodyDecay: 1.8, bodyVol: 0.42, preAttack: 0, duration: 3.5, drive: 3.9, gain: 0.95, sampleRate: 44100 },
   },
   {
     name: 'Punchy Distorted', factory: true, group: 'hits', noteIdx: 2,  noteOct: 2,
+    desc: 'D2 (74 Hz). Heavy distortion (drive 4.5), aggressive attack and decay.',
     params: { subFreq: 73.5, subDecay: 0.55, subVol: 0.88, sweepStart: 294, sweepEnd: 73.5, sweepTime: 0.38, sweepDecay: 0.8, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.78, rumbleCutoff: 80, rumbleDecay: 0.7, rumbleVol: 0.32, bodyFreq: 110, bodyDecay: 0.9, bodyVol: 0.42, preAttack: 0, duration: 4.8, drive: 4.5, gain: 0.9, sampleRate: 44100 },
   },
   {
     name: 'Grimequake',     factory: true, group: 'hits',   noteIdx: 0,  noteOct: 1,
+    desc: 'C1 (33 Hz). Extreme drive (4.8). Grime and dubstep character.',
     params: { subFreq: 32.5, subDecay: 1.2, subVol: 0.82, sweepStart: 130, sweepEnd: 32.5, sweepTime: 0.22, sweepDecay: 1.8, sweepVol: 0.8, sweepShape: 0, punchDecay: 1.5, punchVol: 0.72, rumbleCutoff: 62, rumbleDecay: 1.2, rumbleVol: 0.45, bodyFreq: 49, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 0, duration: 2.7, drive: 4.8, gain: 0.9, sampleRate: 44100 },
+  },
+  {
+    name: 'Deep Sub',       factory: true, group: 'drops',  noteIdx: 7,  noteOct: 1,
+    desc: 'G1 (49 Hz). Long 3.5s sweep, 8s total. Classic deep sub drop feel.',
+    params: { subFreq: 49, subDecay: 0.55, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 3.5, sweepDecay: 0.55, sweepVol: 0.95, sweepShape: 0, punchDecay: 5.0, punchVol: 0.2, rumbleCutoff: 45, rumbleDecay: 0.9, rumbleVol: 0.3, bodyFreq: 74, bodyDecay: 2.5, bodyVol: 0.22, preAttack: 0, duration: 8.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Pure Sub',       factory: true, group: 'drops',  noteIdx: 0,  noteOct: 1,
+    desc: 'Very clean — minimal punch, minimal rumble. S-curve sweep, 2s pre-attack. C1.',
+    params: { subFreq: 33, subDecay: 0.4, subVol: 0.95, sweepStart: 132, sweepEnd: 33, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.9, sweepShape: 1, punchDecay: 8.0, punchVol: 0.06, rumbleCutoff: 35, rumbleDecay: 0.6, rumbleVol: 0.06, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.08, preAttack: 2.0, duration: 8.0, drive: 1.1, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Sub Sweep',      factory: true, group: 'drops',  noteIdx: 10, noteOct: 1,
+    desc: 'Wide range: Bb4 to Bb1 over 4.5s. Very musical, 8s total.',
+    params: { subFreq: 58, subDecay: 0.45, subVol: 0.92, sweepStart: 464, sweepEnd: 58, sweepTime: 4.5, sweepDecay: 0.42, sweepVol: 0.95, sweepShape: 1, punchDecay: 7.0, punchVol: 0.1, rumbleCutoff: 45, rumbleDecay: 0.6, rumbleVol: 0.08, bodyFreq: 87, bodyDecay: 3.5, bodyVol: 0.1, preAttack: 1.5, duration: 8.0, drive: 1.4, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Dark Descent',   factory: true, group: 'drops',  noteIdx: 9,  noteOct: 1,
+    desc: 'Slow 6s atmospheric descent. A1 (55 Hz), dark filtered tail, 10s total.',
+    params: { subFreq: 55, subDecay: 0.3, subVol: 0.88, sweepStart: 440, sweepEnd: 55, sweepTime: 6.0, sweepDecay: 0.28, sweepVol: 0.92, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 55, rumbleDecay: 0.38, rumbleVol: 0.38, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.2, preAttack: 2.5, duration: 10.0, drive: 1.6, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Downlift',       factory: true, group: 'drops',  noteIdx: 4,  noteOct: 2,
+    desc: 'Logarithmic sweep shape — fast start, slow end. E2, 1.5s fall, 4s total.',
+    params: { subFreq: 82.5, subDecay: 0.4, subVol: 0.5, sweepStart: 420, sweepEnd: 82.5, sweepTime: 1.5, sweepDecay: 0.7, sweepVol: 0.95, sweepShape: 2, punchDecay: 5.0, punchVol: 0.15, rumbleCutoff: 90, rumbleDecay: 1.0, rumbleVol: 0.08, bodyFreq: 124, bodyDecay: 1.5, bodyVol: 0.2, preAttack: 0, duration: 4.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Field Sub',      factory: true, group: 'drops',  noteIdx: 0,  noteOct: 1,
+    desc: 'C1 (33 Hz) for field subwoofers. Heavy rumble, 1s sweep, 6s total.',
+    params: { subFreq: 32.5, subDecay: 0.35, subVol: 0.9, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.0, sweepDecay: 0.6, sweepVol: 0.88, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 42, rumbleDecay: 0.6, rumbleVol: 0.42, bodyFreq: 49, bodyDecay: 2.5, bodyVol: 0.38, preAttack: 0, duration: 6.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Sub Drop',          factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
+    desc: 'The classic marching band sub drop. 120 Hz → 18 Hz in 2.5s. Sweep-dominant.',
+    params: { subFreq: 18, subDecay: 0.18, subVol: 0.4, sweepStart: 120, sweepEnd: 18, sweepTime: 2.5, sweepDecay: 0.22, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.5, punchVol: 0.6, rumbleCutoff: 28, rumbleDecay: 0.25, rumbleVol: 0.4, bodyFreq: 40, bodyDecay: 2.0, bodyVol: 0.15, preAttack: 0, duration: 5.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Massive Sub Drop',  factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
+    desc: 'Maximum impact. 150 Hz → 12 Hz in 3s. Near-infrasound — felt, not heard.',
+    params: { subFreq: 12, subDecay: 0.15, subVol: 0.35, sweepStart: 150, sweepEnd: 12, sweepTime: 3.0, sweepDecay: 0.18, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.0, punchVol: 0.65, rumbleCutoff: 22, rumbleDecay: 0.2, rumbleVol: 0.45, bodyFreq: 40, bodyDecay: 2.5, bodyVol: 0.12, preAttack: 0, duration: 6.0, drive: 2.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Quick Sub Drop',    factory: true, group: 'drops', noteIdx: 0,  noteOct: 2,
+    desc: 'Fast version. 110 Hz → 15 Hz in 1.2s. For quick transitions between phrases.',
+    params: { subFreq: 15, subDecay: 0.3, subVol: 0.38, sweepStart: 110, sweepEnd: 15, sweepTime: 1.2, sweepDecay: 0.5, sweepVol: 1.0, sweepShape: 0, punchDecay: 2.8, punchVol: 0.7, rumbleCutoff: 25, rumbleDecay: 0.35, rumbleVol: 0.38, bodyFreq: 40, bodyDecay: 1.5, bodyVol: 0.15, preAttack: 0, duration: 3.0, drive: 2.3, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Half-Time Sub',  factory: true, group: 'drops',  noteIdx: 7,  noteOct: 1,
+    desc: 'G1 (49 Hz), short 0.6s sweep, 5s total. Fits half-time phrase endings.',
+    params: { subFreq: 49, subDecay: 0.6, subVol: 0.88, sweepStart: 196, sweepEnd: 49, sweepTime: 0.6, sweepDecay: 1.2, sweepVol: 0.82, sweepShape: 0, punchDecay: 3.0, punchVol: 0.55, rumbleCutoff: 60, rumbleDecay: 0.8, rumbleVol: 0.25, bodyFreq: 74, bodyDecay: 2.0, bodyVol: 0.35, preAttack: 0, duration: 5.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Epic Build',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
+    desc: '3s pre-attack swell, then 5s drop. G1 (49 Hz), 10s total. Dramatic show moments.',
+    params: { subFreq: 49, subDecay: 0.38, subVol: 0.9, sweepStart: 392, sweepEnd: 49, sweepTime: 5.0, sweepDecay: 0.35, sweepVol: 1.0, sweepShape: 1, punchDecay: 4.0, punchVol: 0.3, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.22, bodyFreq: 74, bodyDecay: 4.5, bodyVol: 0.28, preAttack: 3.0, duration: 10.0, drive: 2.0, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Sub Swell',      factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
+    desc: 'Gentle 1.5s pre-attack swell, G1 (49 Hz). Atmospheric, slow-build texture. 6s.',
+    params: { subFreq: 49, subDecay: 0.2, subVol: 0.92, sweepStart: 196, sweepEnd: 49, sweepTime: 2.5, sweepDecay: 0.35, sweepVol: 0.82, sweepShape: 1, punchDecay: 8.0, punchVol: 0.08, rumbleCutoff: 52, rumbleDecay: 0.4, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.35, preAttack: 1.5, duration: 6.0, drive: 1.6, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Show Opener',    factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
+    desc: 'High-energy immediate impact with body warmth. E1 (41 Hz). Show opening hit.',
+    params: { subFreq: 41.5, subDecay: 0.55, subVol: 0.88, sweepStart: 330, sweepEnd: 41.5, sweepTime: 0.4, sweepDecay: 1.2, sweepVol: 0.85, sweepShape: 0, punchDecay: 2.0, punchVol: 0.75, rumbleCutoff: 55, rumbleDecay: 1.0, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.4, preAttack: 0, duration: 4.0, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Ballad Sub',     factory: true, group: 'builds', noteIdx: 9,  noteOct: 1,
+    desc: '2.5s pre-attack swell, barely any punch. Clean and musical. A1 (55 Hz), 8s.',
+    params: { subFreq: 55, subDecay: 0.28, subVol: 0.9, sweepStart: 220, sweepEnd: 55, sweepTime: 5.0, sweepDecay: 0.3, sweepVol: 0.88, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 50, rumbleDecay: 0.5, rumbleVol: 0.15, bodyFreq: 82.5, bodyDecay: 5.0, bodyVol: 0.3, preAttack: 2.5, duration: 8.0, drive: 1.4, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Climax Hit',     factory: true, group: 'builds', noteIdx: 11, noteOct: 1,
+    desc: 'B1 (62 Hz). Heavy punch and rumble. For the biggest show climax moments. 5s.',
+    params: { subFreq: 61.5, subDecay: 0.45, subVol: 0.92, sweepStart: 370, sweepEnd: 61.5, sweepTime: 0.5, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 0, punchDecay: 1.8, punchVol: 0.85, rumbleCutoff: 70, rumbleDecay: 0.8, rumbleVol: 0.35, bodyFreq: 92, bodyDecay: 2.0, bodyVol: 0.45, preAttack: 0, duration: 5.0, drive: 2.5, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'Show Closer',    factory: true, group: 'builds', noteIdx: 0,  noteOct: 1,
+    desc: 'C1 (33 Hz). Long 8s tail with strong body. For the final chord of the show.',
+    params: { subFreq: 32.5, subDecay: 0.3, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 1.5, sweepDecay: 0.5, sweepVol: 0.9, sweepShape: 1, punchDecay: 2.5, punchVol: 0.65, rumbleCutoff: 40, rumbleDecay: 0.5, rumbleVol: 0.4, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.4, preAttack: 0.5, duration: 8.0, drive: 2.2, gain: 0.95, sampleRate: 44100 },
+  },
+  {
+    name: 'Riser Drop',     factory: true, group: 'builds', noteIdx: 7,  noteOct: 1,
+    desc: '4s pre-attack swell then drop. G1, 10s total. For the biggest show moments.',
+    params: { subFreq: 49, subDecay: 0.35, subVol: 0.88, sweepStart: 392, sweepEnd: 49, sweepTime: 4.0, sweepDecay: 0.4, sweepVol: 0.95, sweepShape: 1, punchDecay: 3.5, punchVol: 0.45, rumbleCutoff: 55, rumbleDecay: 0.45, rumbleVol: 0.28, bodyFreq: 74, bodyDecay: 4.0, bodyVol: 0.3, preAttack: 4.0, duration: 10.0, drive: 1.8, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Rise & Hit',     factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
+    desc: '2s ambient swell then a hard hit. E1 (41 Hz), 5.5s total, S-curve sweep.',
+    params: { subFreq: 41.5, subDecay: 0.5, subVol: 0.88, sweepStart: 332, sweepEnd: 41.5, sweepTime: 0.35, sweepDecay: 1.0, sweepVol: 0.9, sweepShape: 1, punchDecay: 1.8, punchVol: 0.82, rumbleCutoff: 55, rumbleDecay: 0.8, rumbleVol: 0.3, bodyFreq: 62, bodyDecay: 1.5, bodyVol: 0.38, preAttack: 2.0, duration: 5.5, drive: 2.2, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Guard Feature',  factory: true, group: 'builds', noteIdx: 7,  noteOct: 2,
+    desc: 'Light and warm. G2 (98 Hz), minimal punch. For color guard feature moments. 5s.',
+    params: { subFreq: 98, subDecay: 0.6, subVol: 0.82, sweepStart: 196, sweepEnd: 98, sweepTime: 1.0, sweepDecay: 1.0, sweepVol: 0.75, sweepShape: 1, punchDecay: 5.0, punchVol: 0.15, rumbleCutoff: 100, rumbleDecay: 1.0, rumbleVol: 0.08, bodyFreq: 147, bodyDecay: 2.5, bodyVol: 0.4, preAttack: 0.5, duration: 5.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Stadium Boom',   factory: true, group: 'builds', noteIdx: 0,  noteOct: 1,
+    desc: 'C1 (33 Hz), maximum rumble. Designed for large venues with full PA and subs. 7s.',
+    params: { subFreq: 32.5, subDecay: 0.25, subVol: 0.92, sweepStart: 130, sweepEnd: 32.5, sweepTime: 0.8, sweepDecay: 0.5, sweepVol: 0.88, sweepShape: 0, punchDecay: 2.0, punchVol: 0.6, rumbleCutoff: 38, rumbleDecay: 0.4, rumbleVol: 0.45, bodyFreq: 49, bodyDecay: 3.0, bodyVol: 0.42, preAttack: 0, duration: 7.0, drive: 2.5, gain: 1.0, sampleRate: 44100 },
+  },
+  {
+    name: 'Lyrical Sub',    factory: true, group: 'builds', noteIdx: 4,  noteOct: 1,
+    desc: 'Very clean, 1s pre-attack swell, near-zero punch. E1, 8s. For ballad underscoring.',
+    params: { subFreq: 41.5, subDecay: 0.25, subVol: 0.92, sweepStart: 166, sweepEnd: 41.5, sweepTime: 2.0, sweepDecay: 0.5, sweepVol: 0.85, sweepShape: 1, punchDecay: 8.0, punchVol: 0.05, rumbleCutoff: 45, rumbleDecay: 0.5, rumbleVol: 0.12, bodyFreq: 62, bodyDecay: 4.0, bodyVol: 0.38, preAttack: 1.0, duration: 8.0, drive: 1.3, gain: 1.0, sampleRate: 44100 },
   },
 ];
 
@@ -1788,6 +1847,28 @@ const GROUP_ORDER = ['hits', 'drops', 'builds'];
 
 let activeChip = null;
 
+const _tt = document.getElementById('preset-tooltip');
+let _ttHide = null;
+function showTooltip(text, chipEl) {
+  if (!text || !_tt) return;
+  clearTimeout(_ttHide);
+  _tt.textContent = text;
+  _tt.classList.add('visible');
+  const r = chipEl.getBoundingClientRect();
+  let left = r.left + r.width / 2 - 130;
+  left = Math.max(8, Math.min(left, window.innerWidth - 276));
+  const top = r.top - 8;
+  _tt.style.left = left + 'px';
+  _tt.style.top = (top - _tt.offsetHeight || top - 60) + 'px';
+  // reposition after height known
+  requestAnimationFrame(() => {
+    _tt.style.top = (r.top - _tt.offsetHeight - 8) + 'px';
+  });
+}
+function hideTooltip() {
+  _ttHide = setTimeout(() => { if (_tt) _tt.classList.remove('visible'); }, 80);
+}
+
 function makeChip(preset, allPresets) {
   const origIdx = allPresets.indexOf(preset);
   const chip = document.createElement('span');
@@ -1819,6 +1900,10 @@ function makeChip(preset, allPresets) {
     applyPreset(preset);
   });
 
+  if (preset.desc) {
+    chip.addEventListener('mouseenter', () => showTooltip(preset.desc, chip));
+    chip.addEventListener('mouseleave', hideTooltip);
+  }
   if (activeChip === preset.name) chip.classList.add('active');
   return chip;
 }
