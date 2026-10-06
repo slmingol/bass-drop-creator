@@ -20,15 +20,15 @@ The signal is built from five parallel layers mixed together, then passed throug
 
 | Layer | Role | How it works |
 |-------|------|-------------|
-| **Sub** | Foundational low-end | Pure sine wave with an exponential amplitude decay. Sets the fundamental pitch of the drop. |
-| **Sweep** | The "drop" character | A second sine whose frequency glides exponentially from a high starting pitch down to the sub frequency over a configurable time window. Phase-continuous — no clicks. |
-| **Punch** | Attack transient | Two sines (100 Hz + 80 Hz) summed with a fast attack / slow decay envelope. Creates the initial "thud" that registers on small speakers. |
-| **Rumble** | Texture and weight | White noise passed through two cascaded biquad IIR lowpass stages (~4th-order Butterworth response). Adds the physical, sub-floor sensation. |
-| **Body** | Midrange warmth | A third sine at a configurable frequency — typically tuned to the perfect fifth above the sub — with a slow attack envelope that fills out the tone after the initial hit. |
+| **Sub** | Foundational low-end | Pure sine wave with exponential amplitude decay. Sets the fundamental pitch. |
+| **Sweep** | The "drop" character | A second sine whose frequency glides from a high starting pitch down to the sub frequency. Phase-continuous — no clicks. Five glide shapes: Exponential, S-Curve, Logarithmic, Exp Squared, Bounce. |
+| **Punch** | Attack transient | Two sines at subFreq×2 and subFreq×3 summed with a fast attack/slow decay envelope. Creates the initial thud. |
+| **Rumble** | Texture and weight | White noise passed through two cascaded biquad IIR lowpass stages (~4th-order Butterworth). Adds the physical sub-floor sensation. |
+| **Body** | Midrange warmth | A third sine — typically tuned to the fifth above the sub — with a slow attack envelope that fills out the tone after the initial hit. |
 
 After mixing, the chain runs:
 
-1. **Normalize** — peak-normalize the mix to ±1.0 before saturation
+1. **Normalize** — peak-normalize to ±1.0 before saturation
 2. **Tanh saturation** — `tanh(x · drive) / tanh(drive)` soft clipper; drive 1.0 = clean, 3.0+ = heavy
 3. **Output gain** — post-saturation level trim, hard-clipped at ±1.0
 4. **Encode** — manual RIFF/WAV header + 16-bit PCM at the selected sample rate (44.1 or 48 kHz), mono
@@ -40,7 +40,7 @@ After mixing, the chain runs:
 ### Sub
 | Parameter | Range | Default | Description |
 |-----------|-------|---------|-------------|
-| Frequency | 20–200 Hz | 40 Hz | Fundamental pitch |
+| Frequency | 10–200 Hz | 40 Hz | Fundamental pitch (10 Hz floor enables infrasound sub drops) |
 | Decay | 0.1–5 | 1.0 | Higher = shorter tail |
 | Volume | 0–1 | 0.9 | Layer mix level |
 
@@ -48,8 +48,9 @@ After mixing, the chain runs:
 | Parameter | Range | Default | Description |
 |-----------|-------|---------|-------------|
 | Start Freq | 50–500 Hz | 160 Hz | Pitch at t=0 |
-| End Freq | 20–200 Hz | 35 Hz | Pitch after glide (should match Sub Freq) |
+| End Freq | 10–200 Hz | 35 Hz | Pitch after glide — set to 10–20 Hz for true sub drop effect |
 | Glide Time | 0.1–8 s | 2.5 s | Duration of the frequency sweep |
+| Shape | 5 options | Exponential | Exponential, S-Curve, Logarithmic, Exp Squared, Bounce |
 | Decay | 0.1–5 | 0.9 | Amplitude decay rate |
 | Volume | 0–1 | 1.0 | Layer mix level |
 
@@ -76,24 +77,43 @@ After mixing, the chain runs:
 ### Master
 | Parameter | Range | Default | Description |
 |-----------|-------|---------|-------------|
+| Pre-Attack | 0–5 s | 0 s | Ambient swell before the main hit |
 | Duration | 1–12 s | 6.0 s | Total sample length |
 | Drive | 1–5 | 2.2 | Saturation intensity |
 | Gain | 0.1–2 | 1.0 | Post-saturation output level |
-| Sample Rate | 44.1 / 48 kHz | 44.1 kHz | Output sample rate — use 48 kHz for video or MainStage |
+| Sample Rate | 44.1 / 48 kHz | 44.1 kHz | Use 48 kHz for video or MainStage |
+
+---
+
+## Presets
+
+40 factory presets organized into three functional groups:
+
+| Group | Count | Description |
+|-------|-------|-------------|
+| **Hits** | 19 | Short punchy impacts — pad-triggerable, drill accents, quick scene changes |
+| **Sub Drops** | 10 | Pitch falls from audible bass down to infrasound (120 Hz → 10–20 Hz) |
+| **Builds** | 11 | Long atmospheric sounds — ballads, climax moments, show openers and closers |
+
+Hover any preset chip for a description of what it does. The preset area is collapsible.
+
+**Search**: Type any keyword in the filter box to narrow presets by name or description. Supports multiple space-separated terms (AND logic). Autocomplete suggests words from the full preset library as you type.
+
+**Save your own**: Enter a name in the save field and click Save. Custom presets appear in a Saved section and persist in `localStorage`.
 
 ---
 
 ## How to use
 
-1. **Pick a note** — choose note name (C through B, with enharmonic spellings) and octave (1–4). The frequency display updates in real time.
-2. **Apply to Layers** — click "Apply to Layers" to set smart defaults: Sub and Sweep End at the note's fundamental (or one octave below if >80 Hz), Sweep Start two octaves up, Body at the perfect fifth.
-3. **Load a preset** — choose from five factory presets (Default, Deep Sub, Heavy Club, Clean Sub, Tight Punch) to start from a tuned patch, then adjust from there. Save your own with the name input and Save button.
+1. **Pick a note** — choose note name (C through B) and octave (1–4). Frequency display updates in real time.
+2. **Apply to Layers** — sets smart defaults: Sub and Sweep End at the note's fundamental, Sweep Start two octaves up, Body at the perfect fifth.
+3. **Load a preset** — pick from 40 factory presets or save your own. Hover for a description; search to filter.
 4. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
-5. **Preview** — plays the synthesized audio directly in the browser via Web Audio API. Synthesizes on first click if not yet generated.
-6. **Download WAV** — synthesizes, draws the waveform, and downloads a `.wav` file named `bass_drop_<note><octave>.wav`.
+5. **Preview** — plays synthesized audio via Web Audio API. Press Escape to stop.
+6. **Download WAV** — synthesizes and downloads `bass_drop_<note><octave>.wav`.
 7. **Reset All** — returns every parameter to its default value.
 
-All slider positions, note selection, theme preference, and user presets persist automatically in `localStorage`.
+All settings persist automatically in `localStorage` between sessions.
 
 ---
 
@@ -101,11 +121,13 @@ All slider positions, note selection, theme preference, and user presets persist
 
 - **Language**: vanilla HTML/CSS/JS — zero build step, zero dependencies
 - **Synthesis**: `Float64Array` sample-by-sample computation in the main thread
+- **Sweep shapes**: five glide curves — Exponential, S-Curve (smoothstep), Logarithmic (log1p), Exp Squared (u²), Bounce
+- **Sweep settle fade**: sweep amplitude fades out after sweep completes to prevent beating against the sub
 - **Filter design**: bilinear-transform biquad lowpass (Q = 0.7071) applied twice for ~4th-order Butterworth rolloff
-- **Phase continuity**: the Sweep layer accumulates phase from frequency, so the exponential glide produces no discontinuities regardless of sample rate
+- **Phase continuity**: Sweep layer accumulates phase from frequency, so any glide curve produces no discontinuities
 - **WAV encoding**: manual `ArrayBuffer` / `DataView` construction of the RIFF header; no Blob API tricks needed
 - **Playback**: `AudioContext.createBuffer()` → `AudioBufferSourceNode` for in-browser preview
-- **Persistence**: `localStorage` stores all 20 synth parameters as JSON plus note index, octave, theme choice, and user-saved presets
+- **Persistence**: `localStorage` keys — `bdc-params`, `bdc-note-idx`, `bdc-note-oct`, `bdc-theme`, `bdc-simple`, `bdc-user-presets`, `bdc-presets-open`
 
 ---
 
