@@ -823,8 +823,14 @@ const LAYERS = [
       { id: 'sweepDecay', label: 'Decay',      unit: '',   min: 0.1, max: 5,   step: 0.05, def: 0.9,  hint: 'Amplitude fade over time. Low values keep the sweep audible longer.' },
       { id: 'sweepVol',   label: 'Volume',     unit: '',   min: 0,   max: 1,   step: 0.01, def: 1.0,  hint: 'Sweep mix level. This is usually the most audible part of the drop character.' },
       { id: 'sweepShape', label: 'Sweep Shape', type: 'select',
-        options: [{value: 0, label: 'Exponential'}, {value: 1, label: 'S-Curve'}],
-        def: 0, hint: 'Exponential: constant pitch-rate glide. S-Curve: slow start, fast middle, slow landing — more musical, closer to DAW automation curves.' },
+        options: [
+          {value: 0, label: 'Exponential'},
+          {value: 1, label: 'S-Curve'},
+          {value: 2, label: 'Logarithmic'},
+          {value: 3, label: 'Exp Squared'},
+          {value: 4, label: 'Bounce'},
+        ],
+        def: 0, hint: 'Exponential: constant rate. S-Curve: slow-fast-slow. Logarithmic: fast start, slow landing. Exp Squared: lingers high then plunges. Bounce: overshoots bottom and rebounds.' },
     ],
   },
   {
@@ -1142,7 +1148,11 @@ function synthesize(p) {
     for (let i = 0; i < N; i++) {
       const t = i * dt;
       const u = Math.min(t / p.sweepTime, 1);
-      const su = p.sweepShape ? u * u * (3 - 2 * u) : u; // smoothstep for S-curve
+      const su = p.sweepShape === 1 ? u * u * (3 - 2 * u)           // S-Curve: smoothstep
+               : p.sweepShape === 2 ? Math.log1p(u * (Math.E - 1))  // Logarithmic: log(1+u*(e-1))
+               : p.sweepShape === 3 ? u * u                          // Exp Squared: lingers high
+               : p.sweepShape === 4 ? Math.min(1, u + 0.18 * Math.sin(2 * Math.PI * u) * Math.exp(-4 * u)) // Bounce
+               : u;                                                   // Exponential (default)
       const fr = p.sweepStart * Math.exp(logRatio * su);
       ph += 2 * Math.PI * fr * dt;
       buf[i] += Math.sin(ph) * Math.exp(-t * p.sweepDecay) * p.sweepVol;
