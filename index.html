@@ -471,6 +471,8 @@ input[type=range]::-moz-range-track {
 .btn:active { transform: scale(0.96); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
+.btn-preview.btn-stop { background: color-mix(in srgb, var(--punch) 18%, var(--card)); border: 1px solid var(--punch); color: var(--punch); }
+.btn-preview.btn-stop:hover { background: color-mix(in srgb, var(--punch) 28%, var(--card)); }
 .btn-preview {
   background: var(--card);
   color: var(--sweep);
@@ -1357,10 +1359,29 @@ function generate() {
 }
 
 // ─── Preview button ───────────────────────────────────────────────
+let isPlaying = false;
+
+function setPlaying(val) {
+  isPlaying = val;
+  const btn = document.getElementById('btn-preview');
+  btn.innerHTML = val ? '&#9632; Stop' : '&#9654; Preview';
+  btn.classList.toggle('btn-stop', val);
+}
+
+function onPlayEnded() {
+  setPlaying(false);
+  setStatus('Preview finished.', 'ok');
+}
+
 document.getElementById('btn-preview').addEventListener('click', () => {
+  if (isPlaying) {
+    if (currentSource) { try { currentSource.stop(); } catch(e) {} }
+    stopPlayhead();
+    setPlaying(false);
+    setStatus('Stopped.', '');
+    return;
+  }
   if (!lastResult) {
-    // Generate first, then play
-    const origStatus = document.getElementById('status').textContent;
     setStatus('Synthesizing for preview…', '');
     document.getElementById('btn-preview').disabled = true;
     setTimeout(() => {
@@ -1369,10 +1390,11 @@ document.getElementById('btn-preview').addEventListener('click', () => {
         lastResult = result;
         drawWaveform(result.float);
         document.getElementById('output-meta').textContent =
-          `${(result.N / result.SR).toFixed(1)}s · ${result.N.toLocaleString()} samples · 44.1 kHz`;
+          `${(result.N / result.SR).toFixed(1)}s · ${result.N.toLocaleString()} samples · ${result.SR === 48000 ? '48' : '44.1'} kHz`;
         const src = playBuffer(result.int16, result.SR);
+        setPlaying(true);
         setStatus('Playing preview…', 'ok');
-        src.onended = () => setStatus('Preview finished.', 'ok');
+        src.addEventListener('ended', onPlayEnded);
       } catch(e) {
         setStatus(`Error: ${e.message}`, 'err');
       } finally {
@@ -1381,8 +1403,9 @@ document.getElementById('btn-preview').addEventListener('click', () => {
     }, 20);
   } else {
     const src = playBuffer(lastResult.int16, lastResult.SR);
+    setPlaying(true);
     setStatus('Playing preview…', 'ok');
-    src.onended = () => setStatus('Preview finished.', 'ok');
+    src.addEventListener('ended', onPlayEnded);
   }
 });
 
