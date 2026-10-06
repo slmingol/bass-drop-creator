@@ -175,7 +175,7 @@ Hover any preset chip for a description. Search by keyword (name or description 
 ## How to use
 
 1. **Pick a note** — choose note name (C through B) and octave (1–4). Frequency display updates in real time.
-2. **Apply to Layers** — sets smart defaults: Sub and Sweep End at the note's fundamental, Sweep Start two octaves up, Body at the perfect fifth.
+2. **Transpose to Note** — scales all frequency parameters (Sub, Sweep Start/End, Body, Rumble) proportionally to the selected note, preserving the preset's octave relationships and character.
 3. **Load a preset** — pick from 48 factory presets or save your own. Hover for a description; search to filter by keyword.
 4. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
 5. **Preview** — plays synthesized audio via Web Audio API. Press Escape to stop.
