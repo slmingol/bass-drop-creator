@@ -598,6 +598,79 @@ input[type=range]::-moz-range-track {
 .preset-chip:hover { border-color: var(--sub); }
 .preset-chip.active { border-color: var(--sub); background: color-mix(in srgb, var(--sub) 14%, var(--card)); color: var(--sub); }
 .preset-chip.factory { font-style: italic; }
+.preset-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.preset-search-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  padding: 5px 28px 5px 28px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.preset-search-input:focus { border-color: var(--sub); }
+.preset-search-input::placeholder { color: var(--muted); }
+.preset-search-icon {
+  position: absolute;
+  left: 23px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
+  line-height: 1;
+}
+.preset-search-clear {
+  position: absolute;
+  right: 23px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: none;
+}
+.preset-search-clear.visible { display: block; }
+.preset-search-clear:hover { color: var(--fg); }
+.preset-ac {
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 14px;
+  right: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  z-index: 200;
+  overflow: hidden;
+  display: none;
+}
+.preset-ac.open { display: block; }
+.preset-ac-item {
+  padding: 6px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preset-ac-item:hover, .preset-ac-item.selected { background: color-mix(in srgb, var(--sub) 14%, var(--card)); color: var(--sub); }
+.preset-section.hidden { display: none; }
 #preset-tooltip {
   position: fixed;
   z-index: 9999;
@@ -1908,50 +1981,110 @@ function makeChip(preset, allPresets) {
   return chip;
 }
 
+const STOP_WORDS = new Set(['a','an','the','and','or','for','in','on','at','to','of','with','by','from','is','it','its','as','be','but','not','yet','so','very','then','than','that','this','these','its','all','any','both','each','few','most','other','some','just','over','also','into','too','after','well','has','are','was']);
+
+function buildWordIndex() {
+  const words = new Set();
+  FACTORY_PRESETS.forEach(p => {
+    const text = (p.name + ' ' + (p.desc || '')).toLowerCase();
+    (text.match(/[a-z][a-z0-9]+/g) || []).forEach(w => {
+      if (w.length >= 3 && !STOP_WORDS.has(w)) words.add(w);
+    });
+  });
+  return [...words].sort();
+}
+const PRESET_WORDS = buildWordIndex();
+
+function presetMatches(preset, terms) {
+  if (!terms.length) return true;
+  const haystack = ((preset.name || '') + ' ' + (preset.desc || '') + ' ' + preset.group).toLowerCase();
+  return terms.every(t => haystack.includes(t));
+}
+
+let presetSearch = '';
+let acSelectedIdx = -1;
+
 function renderPresets() {
   const bar = document.getElementById('preset-bar');
   if (!bar) return;
   bar.innerHTML = '';
 
-  const userPresets = getUserPresets();
-  const allPresets = [
-    ...FACTORY_PRESETS,
-    ...userPresets.map(p => ({ ...p, group: 'saved' })),
-  ];
+  // ── Search bar ──
+  const sw = document.createElement('div');
+  sw.className = 'preset-search-wrap';
+  sw.innerHTML = `
+    <span class="preset-search-icon">&#9906;</span>
+    <input class="preset-search-input" id="preset-search-input" type="text"
+      placeholder="Filter by keyword — punch, lyrical, short, 808…" autocomplete="off" value="${presetSearch.replace(/"/g,'&quot;')}">
+    <button class="preset-search-clear${presetSearch ? ' visible' : ''}" id="preset-search-clear" title="Clear">&#10005;</button>
+    <div class="preset-ac" id="preset-ac"></div>
+  `;
+  bar.appendChild(sw);
 
-  const groups = [...GROUP_ORDER, ...(userPresets.length ? ['saved'] : [])];
-  groups.forEach(gid => {
-    const meta = GROUP_META[gid];
-    const presets = allPresets.filter(p => p.group === gid);
-    if (!presets.length) return;
+  const searchInput = document.getElementById('preset-search-input');
+  const clearBtn    = document.getElementById('preset-search-clear');
+  const ac          = document.getElementById('preset-ac');
 
-    const section = document.createElement('div');
-    section.className = 'preset-section';
+  function getTerms(val) { return val.trim().toLowerCase().split(/\s+/).filter(Boolean); }
 
-    const header = document.createElement('div');
-    header.className = 'preset-section-header';
+  function updateAC(val) {
+    const lastWord = val.split(/\s+/).pop().toLowerCase();
+    ac.innerHTML = '';
+    acSelectedIdx = -1;
+    if (!lastWord || lastWord.length < 2) { ac.classList.remove('open'); return; }
+    const matches = PRESET_WORDS.filter(w => w.startsWith(lastWord) && w !== lastWord).slice(0, 8);
+    if (!matches.length) { ac.classList.remove('open'); return; }
+    matches.forEach((w, i) => {
+      const item = document.createElement('div');
+      item.className = 'preset-ac-item';
+      item.textContent = w;
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const parts = val.split(/\s+/);
+        parts[parts.length - 1] = w;
+        presetSearch = parts.join(' ') + ' ';
+        renderPresets();
+        requestAnimationFrame(() => {
+          const inp = document.getElementById('preset-search-input');
+          if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+        });
+      });
+      ac.appendChild(item);
+    });
+    ac.classList.add('open');
+  }
 
-    const lbl = document.createElement('span');
-    lbl.className = 'preset-section-label';
-    lbl.textContent = meta.label;
-
-    const desc = document.createElement('span');
-    desc.className = 'preset-section-desc';
-    desc.textContent = meta.desc;
-
-    header.appendChild(lbl);
-    header.appendChild(desc);
-
-    const chips = document.createElement('div');
-    chips.className = 'preset-chips';
-    presets.forEach(p => chips.appendChild(makeChip(p, allPresets)));
-
-    section.appendChild(header);
-    section.appendChild(chips);
-    bar.appendChild(section);
+  searchInput.addEventListener('input', e => {
+    presetSearch = e.target.value;
+    clearBtn.classList.toggle('visible', !!presetSearch);
+    updateAC(presetSearch);
+    // re-render sections in place without destroying the search input
+    renderSections(bar, getTerms(presetSearch));
   });
 
-  // Save row always at bottom
+  searchInput.addEventListener('keydown', e => {
+    const items = ac.querySelectorAll('.preset-ac-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); acSelectedIdx = Math.min(acSelectedIdx + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); acSelectedIdx = Math.max(acSelectedIdx - 1, -1); items.forEach((el, i) => el.classList.toggle('selected', i === acSelectedIdx)); }
+    else if (e.key === 'Enter' && acSelectedIdx >= 0) {
+      e.preventDefault();
+      items[acSelectedIdx].dispatchEvent(new MouseEvent('mousedown'));
+    } else if (e.key === 'Escape') { ac.classList.remove('open'); }
+  });
+
+  searchInput.addEventListener('blur', () => setTimeout(() => ac.classList.remove('open'), 150));
+  searchInput.addEventListener('focus', () => updateAC(searchInput.value));
+
+  clearBtn.addEventListener('click', () => {
+    presetSearch = '';
+    renderPresets();
+    requestAnimationFrame(() => document.getElementById('preset-search-input')?.focus());
+  });
+
+  // ── Sections ──
+  renderSections(bar, getTerms(presetSearch));
+
+  // ── Save row ──
   const saveSection = document.createElement('div');
   saveSection.className = 'preset-section';
   saveSection.style.cssText = 'display:flex;gap:6px;align-items:center;border-bottom:none;';
@@ -1980,6 +2113,58 @@ function renderPresets() {
     renderPresets();
     setStatus(`Saved preset "${name}"`, 'ok');
   });
+}
+
+function renderSections(bar, terms) {
+  bar.querySelectorAll('.preset-section').forEach(s => s.remove());
+  // re-insert before save row (last child)
+  const saveRow = bar.lastChild;
+
+  const userPresets = getUserPresets();
+  const allPresets = [
+    ...FACTORY_PRESETS,
+    ...userPresets.map(p => ({ ...p, group: 'saved' })),
+  ];
+
+  const groups = [...GROUP_ORDER, ...(userPresets.length ? ['saved'] : [])];
+  let totalVisible = 0;
+
+  groups.forEach(gid => {
+    const meta = GROUP_META[gid];
+    const presets = allPresets.filter(p => p.group === gid && presetMatches(p, terms));
+    if (!presets.length) return;
+    totalVisible += presets.length;
+
+    const section = document.createElement('div');
+    section.className = 'preset-section';
+
+    const header = document.createElement('div');
+    header.className = 'preset-section-header';
+    const lbl = document.createElement('span');
+    lbl.className = 'preset-section-label';
+    lbl.textContent = meta.label;
+    const dsc = document.createElement('span');
+    dsc.className = 'preset-section-desc';
+    dsc.textContent = meta.desc;
+    header.appendChild(lbl);
+    header.appendChild(dsc);
+
+    const chips = document.createElement('div');
+    chips.className = 'preset-chips';
+    presets.forEach(p => chips.appendChild(makeChip(p, allPresets)));
+
+    section.appendChild(header);
+    section.appendChild(chips);
+    bar.insertBefore(section, saveRow);
+  });
+
+  if (totalVisible === 0 && terms.length) {
+    const empty = document.createElement('div');
+    empty.className = 'preset-section';
+    empty.style.cssText = 'font-size:12px;color:var(--muted);';
+    empty.textContent = `No presets match "${terms.join(' ')}".`;
+    bar.insertBefore(empty, saveRow);
+  }
 }
 
 // ─── Hero banner canvas ────────────────────────────────────────────
