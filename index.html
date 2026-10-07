@@ -150,14 +150,14 @@ header {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 18px;
-  margin-block: 18px;
+  padding: 8px 14px;
+  margin-block: 10px;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 20px;
+  align-items: center;
+  gap: 12px;
 }
-.note-group { display: flex; flex-direction: column; gap: 6px; }
+.note-group { display: flex; flex-direction: row; align-items: center; gap: 6px; }
 .eyebrow {
   font-size: 10px;
   font-weight: 600;
@@ -165,16 +165,16 @@ header {
   letter-spacing: 0.1em;
   color: var(--muted);
 }
-.note-selectors { display: flex; gap: 8px; align-items: center; }
+.note-selectors { display: flex; gap: 6px; align-items: center; }
 
 select {
   background: var(--card);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 4px 8px;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s;
@@ -183,17 +183,17 @@ select:focus { border-color: var(--sub); }
 
 .note-freq-display {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: baseline;
+  gap: 8px;
 }
 .note-freq {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 1;
   color: var(--fg);
 }
-.note-freq .hz { font-size: 13px; color: var(--muted); margin-left: 3px; }
+.note-freq .hz { font-size: 11px; color: var(--muted); margin-left: 2px; }
 .note-name-big {
   font-size: 11px;
   color: var(--muted);
@@ -201,47 +201,44 @@ select:focus { border-color: var(--sub); }
 }
 
 .btn-apply {
-  padding: 9px 18px;
+  padding: 5px 14px;
   background: var(--sub);
   color: #000;
   border: none;
   border-radius: 6px;
   font-family: 'Outfit', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
   white-space: nowrap;
-  align-self: flex-end;
 }
 .btn-apply:hover { opacity: 0.85; }
 .btn-apply:active { transform: scale(0.96); }
 
 .btn-reset-all {
-  padding: 9px 14px;
+  padding: 5px 10px;
   background: transparent;
   color: var(--muted);
   border: 1px solid var(--border);
   border-radius: 6px;
   font-family: 'Outfit', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
-  align-self: flex-end;
 }
 .btn-reset-all:hover { color: var(--fg); border-color: var(--fg); }
 
 .btn-simple {
-  padding: 9px 14px;
+  padding: 5px 10px;
   background: transparent;
   color: var(--muted);
   border: 1px solid var(--border);
   border-radius: 6px;
   font-family: 'Outfit', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
-  align-self: flex-end;
 }
 .btn-simple:hover { color: var(--fg); border-color: var(--fg); }
 .btn-simple.active { background: color-mix(in srgb, var(--sub) 20%, var(--card)); border-color: var(--sub); color: var(--sub); }
@@ -894,7 +891,7 @@ input[type=range]::-moz-range-track {
 <!-- Note picker -->
 <div class="note-section">
   <div class="note-group">
-    <div class="eyebrow">Note</div>
+    <span class="eyebrow">Note</span>
     <div class="note-selectors">
       <select id="sel-note">
         <option value="0">C</option>
@@ -919,7 +916,6 @@ input[type=range]::-moz-range-track {
     </div>
   </div>
   <div class="note-freq-display">
-    <div class="eyebrow">Frequency</div>
     <div class="note-freq" id="note-freq">–<span class="hz">Hz</span></div>
     <div class="note-name-big" id="note-name-big">–</div>
   </div>
