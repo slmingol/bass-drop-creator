@@ -100,7 +100,7 @@ After mixing, the chain runs:
 | **Sub Drops** | 18 | Pitch falls from audible bass down to infrasound (up to 196 Hz → 12 Hz) |
 | **Builds** | 11 | Long atmospheric sounds — ballads, climax moments, show openers and closers |
 
-Hover any preset chip for a description. Search by keyword (name or description text). Preset area is collapsible. Save your own presets; they appear in a Saved section and persist in `localStorage`.
+Presets are listed in a compact table — name on the left, description on the right. Each group (Hits, Sub Drops, Builds) is independently collapsible and defaults to closed. Search by keyword to filter across all groups. Save your own presets by name; they appear in a Saved section and persist in `localStorage`.
 
 <details>
 <summary><strong>Full preset list (48 presets)</strong></summary>
@@ -174,12 +174,12 @@ Hover any preset chip for a description. Search by keyword (name or description 
 
 ## How to use
 
-1. **Pick a note** — choose note name (C through B) and octave (1–4). Frequency display updates in real time.
-2. **Transpose to Note** — scales all frequency parameters (Sub, Sweep Start/End, Body, Rumble) proportionally to the selected note, preserving the preset's octave relationships and character.
-3. **Load a preset** — pick from 48 factory presets or save your own. Hover for a description; search to filter by keyword.
+1. **Load a preset** — expand a group (Hits, Sub Drops, Builds) and click any row. Search by keyword to filter.
+2. **Pick a note** — choose note name (C through B) and octave (1–4). Frequency display updates in real time.
+3. **Transpose to Note** — scales all frequency parameters (Sub, Sweep Start/End, Body, Rumble) proportionally to the selected note, preserving the preset's octave relationships and character.
 4. **Dial in the layers** — adjust any slider to taste. Changes invalidate the cached render so Preview always regenerates.
-5. **Preview** — plays synthesized audio via Web Audio API. Press Escape to stop.
-6. **Download WAV** — synthesizes and downloads `bass_drop_<note><octave>.wav`.
+5. **Preview** — plays synthesized audio via Web Audio API. Press `Space` to toggle, `Esc` to stop.
+6. **Download WAV** — synthesizes and downloads `bass_drop_<preset>_<note><octave>.wav`. Press `D` to download.
 7. **Reset All** — returns every parameter to its default value.
 
 All settings persist automatically in `localStorage` between sessions.

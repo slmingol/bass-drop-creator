@@ -342,6 +342,7 @@ select:focus { border-color: var(--sub); }
 }
 .ht-text strong { font-size: 12px; display: block; color: var(--fg); margin-bottom: 3px; }
 .ht-text p { font-size: 11px; color: var(--muted); line-height: 1.5; margin: 0; }
+kbd { font-family: 'IBM Plex Mono', monospace; font-size: 9px; background: var(--card); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; color: var(--fg); }
 
 /* ─── Parameter rows ───────────────────────────────────────────── */
 .param-row { margin-bottom: 12px; }
@@ -587,6 +588,15 @@ input[type=range]::-moz-range-track {
   color: var(--muted);
   text-transform: none;
   letter-spacing: 0;
+}
+.preset-group-hdr-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--sub);
+  opacity: 0.7;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .preset-row {
   display: flex;
@@ -967,14 +977,14 @@ input[type=range]::-moz-range-track {
       <div class="ht-num">6</div>
       <div class="ht-text">
         <strong>Preview</strong>
-        <p>Plays in browser via Web Audio API. Regenerates automatically when params change.</p>
+        <p>Plays in browser via Web Audio API. Regenerates automatically when params change. Press <kbd>Space</kbd> to toggle, <kbd>Esc</kbd> to stop.</p>
       </div>
     </div>
     <div class="ht-step">
       <div class="ht-num">7</div>
       <div class="ht-text">
         <strong>Download WAV</strong>
-        <p>Exports a 16-bit PCM mono .wav at the selected sample rate (44.1 or 48 kHz), named after the selected note.</p>
+        <p>Exports a 16-bit PCM mono .wav at the selected sample rate (44.1 or 48 kHz), named after the preset and note. Press <kbd>D</kbd> to download.</p>
       </div>
     </div>
   </div>
@@ -1673,7 +1683,16 @@ function stopPreview() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') stopPreview();
+  if (e.key === 'Escape') { stopPreview(); return; }
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.key === ' ') {
+    e.preventDefault();
+    document.getElementById('btn-preview').click();
+  } else if (e.key === 'd' || e.key === 'D') {
+    e.preventDefault();
+    document.getElementById('btn-generate').click();
+  }
 });
 
 document.getElementById('btn-preview').addEventListener('click', () => {
@@ -1721,7 +1740,8 @@ document.getElementById('btn-generate').addEventListener('click', () => {
       const noteIdx  = parseInt(selNote.value);
       const noteOct  = parseInt(selOct.value);
       const noteName = NOTE_SHARP[noteIdx].replace('#', 's');
-      const filename = `bass_drop_${noteName}${noteOct}.wav`;
+      const presetSlug = activeChip ? '_' + activeChip.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') : '';
+      const filename = `bass_drop${presetSlug}_${noteName}${noteOct}.wav`;
 
       const a  = document.createElement('a');
       a.href   = url;
@@ -2286,6 +2306,11 @@ function renderSections(bar, terms) {
       dsc.textContent = meta.desc;
       hdr.appendChild(dsc);
     }
+
+    const cnt = document.createElement('span');
+    cnt.className = 'preset-group-hdr-count';
+    cnt.textContent = presets.length;
+    hdr.appendChild(cnt);
 
     const rowsWrap = document.createElement('div');
     rowsWrap.className = 'preset-group-rows' + (isCollapsed ? ' collapsed' : '');
