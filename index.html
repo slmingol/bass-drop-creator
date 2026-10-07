@@ -812,7 +812,7 @@ input[type=range]::-moz-range-track {
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   padding: 7px 14px;
   gap: 4px;
   pointer-events: none;
@@ -2342,8 +2342,8 @@ function drawHero(clipFrac) {
   // Waveform math
   const cf      = Math.max(0, Math.min(1, clipFrac ?? 1));
   const clipW   = W * cf;
-  const centerY = H * 0.52;
-  const amp0    = H * 0.40;
+  const centerY = H * 0.75;
+  const amp0    = H * 0.28;
   const omega   = (2 * Math.PI * 14) / W;  // 14 visible cycles
   const decay   = W * 0.32;
 
