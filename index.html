@@ -472,9 +472,10 @@ input[type=range]::-moz-range-track {
   align-items: center;
 }
 input[type=range].vol-slider {
-  width: 72px;
+  width: 72px !important;
   --accent: var(--sweep);
   --track: var(--border);
+  flex-shrink: 0;
 }
 .status {
   font-family: 'IBM Plex Mono', monospace;
@@ -1725,7 +1726,7 @@ function updateVolFill() {
   document.getElementById('vol-wave1').style.display = muted ? 'none' : '';
   document.getElementById('vol-wave2').style.display = (muted || v < 0.75) ? 'none' : '';
 }
-updateVolFill();
+updateVolFill(); // sets --fill to 50% on load (value=1, max=2)
 
 volSlider.addEventListener('input', () => {
   playbackVol = parseFloat(volSlider.value);
