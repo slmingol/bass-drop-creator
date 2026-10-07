@@ -465,34 +465,16 @@ input[type=range]::-moz-range-track {
   flex-shrink: 0;
 }
 .vol-icon {
-  font-size: 13px;
   cursor: pointer;
   user-select: none;
-  line-height: 1;
+  color: var(--sweep);
+  display: flex;
+  align-items: center;
 }
-.vol-slider {
-  -webkit-appearance: none;
-  appearance: none;
+input[type=range].vol-slider {
   width: 72px;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(to right, var(--sweep) var(--vol-fill, 50%), var(--border) var(--vol-fill, 50%));
-  outline: none;
-  cursor: pointer;
-}
-.vol-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: var(--sweep);
-  cursor: pointer;
-}
-.vol-slider::-moz-range-thumb {
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: var(--sweep);
-  border: none;
-  cursor: pointer;
+  --accent: var(--sweep);
+  --track: var(--border);
 }
 .status {
   font-family: 'IBM Plex Mono', monospace;
@@ -1040,7 +1022,13 @@ input[type=range]::-moz-range-track {
   <div class="action-controls">
     <div class="status" id="status">Ready — adjust parameters and generate.</div>
     <div class="vol-wrap" title="Playback volume (preview only)">
-      <span class="vol-icon" id="vol-icon">🔊</span>
+      <span class="vol-icon" id="vol-icon">
+        <svg id="vol-svg" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 5H4.5L7.5 2.5V11.5L4.5 9H2V5Z" fill="currentColor"/>
+          <path id="vol-wave1" d="M9 4.5C9.8 5.2 10.3 6 10.3 7C10.3 8 9.8 8.8 9 9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          <path id="vol-wave2" d="M10.5 2.5C12 3.8 12.8 5.3 12.8 7C12.8 8.7 12 10.2 10.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        </svg>
+      </span>
       <input type="range" id="vol-slider" min="0" max="2" step="0.05" value="1" class="vol-slider">
     </div>
     <button class="btn btn-preview" id="btn-preview">&#9654; Preview</button>
@@ -1730,9 +1718,12 @@ const volSlider = document.getElementById('vol-slider');
 const volIcon   = document.getElementById('vol-icon');
 
 function updateVolFill() {
-  const pct = (parseFloat(volSlider.value) / 2 * 100).toFixed(1);
-  volSlider.style.setProperty('--vol-fill', pct + '%');
-  volIcon.textContent = volMuted || parseFloat(volSlider.value) === 0 ? '🔇' : parseFloat(volSlider.value) < 0.5 ? '🔉' : '🔊';
+  const v = parseFloat(volSlider.value);
+  const pct = (v / 2 * 100).toFixed(1);
+  volSlider.style.setProperty('--fill', pct + '%');
+  const muted = volMuted || v === 0;
+  document.getElementById('vol-wave1').style.display = muted ? 'none' : '';
+  document.getElementById('vol-wave2').style.display = (muted || v < 0.75) ? 'none' : '';
 }
 updateVolFill();
 
