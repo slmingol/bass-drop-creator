@@ -571,7 +571,19 @@ input[type=range]::-moz-range-track {
   position: sticky;
   top: 0;
   z-index: 1;
+  cursor: pointer;
+  user-select: none;
 }
+.preset-group-hdr:hover { background: color-mix(in srgb, var(--sub) 12%, var(--surface)); }
+.preset-group-hdr-arrow {
+  font-size: 8px;
+  display: inline-block;
+  transition: transform 0.15s;
+  margin-right: 2px;
+  color: var(--sub);
+}
+.preset-group-hdr.collapsed .preset-group-hdr-arrow { transform: rotate(-90deg); }
+.preset-group-rows.collapsed { display: none; }
 .preset-group-hdr-desc {
   font-size: 10px;
   font-weight: 400;
@@ -2238,14 +2250,30 @@ function renderSections(bar, terms) {
   const wrap = document.createElement('div');
   wrap.className = 'preset-rows-wrap';
 
+  let collapsedGroups;
+  try { collapsedGroups = new Set(JSON.parse(localStorage.getItem('bdc-groups-collapsed') || '[]')); }
+  catch(e) { collapsedGroups = new Set(); }
+
+  function saveCollapsedGroups() {
+    try { localStorage.setItem('bdc-groups-collapsed', JSON.stringify([...collapsedGroups])); } catch(e) {}
+  }
+
   groups.forEach(gid => {
     const meta = GROUP_META[gid];
     const presets = allPresets.filter(p => p.group === gid && presetMatches(p, terms));
     if (!presets.length) return;
     totalVisible += presets.length;
 
+    const isCollapsed = collapsedGroups.has(gid) && !terms.length;
+
     const hdr = document.createElement('div');
-    hdr.className = 'preset-group-hdr';
+    hdr.className = 'preset-group-hdr' + (isCollapsed ? ' collapsed' : '');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'preset-group-hdr-arrow';
+    arrow.textContent = '▼';
+    hdr.appendChild(arrow);
+
     const lbl = document.createElement('span');
     lbl.textContent = meta.label;
     hdr.appendChild(lbl);
@@ -2255,9 +2283,22 @@ function renderSections(bar, terms) {
       dsc.textContent = meta.desc;
       hdr.appendChild(dsc);
     }
-    wrap.appendChild(hdr);
 
-    presets.forEach(p => wrap.appendChild(makeRow(p, allPresets)));
+    const rowsWrap = document.createElement('div');
+    rowsWrap.className = 'preset-group-rows' + (isCollapsed ? ' collapsed' : '');
+    presets.forEach(p => rowsWrap.appendChild(makeRow(p, allPresets)));
+
+    hdr.addEventListener('click', () => {
+      const nowCollapsed = !hdr.classList.contains('collapsed');
+      hdr.classList.toggle('collapsed', nowCollapsed);
+      rowsWrap.classList.toggle('collapsed', nowCollapsed);
+      if (nowCollapsed) collapsedGroups.add(gid);
+      else collapsedGroups.delete(gid);
+      saveCollapsedGroups();
+    });
+
+    wrap.appendChild(hdr);
+    wrap.appendChild(rowsWrap);
   });
 
   if (totalVisible === 0 && terms.length) {
