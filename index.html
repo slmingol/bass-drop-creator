@@ -2250,12 +2250,12 @@ function renderSections(bar, terms) {
   const wrap = document.createElement('div');
   wrap.className = 'preset-rows-wrap';
 
-  let collapsedGroups;
-  try { collapsedGroups = new Set(JSON.parse(localStorage.getItem('bdc-groups-collapsed') || '[]')); }
-  catch(e) { collapsedGroups = new Set(); }
+  let expandedGroups;
+  try { expandedGroups = new Set(JSON.parse(localStorage.getItem('bdc-groups-expanded') || '[]')); }
+  catch(e) { expandedGroups = new Set(); }
 
-  function saveCollapsedGroups() {
-    try { localStorage.setItem('bdc-groups-collapsed', JSON.stringify([...collapsedGroups])); } catch(e) {}
+  function saveExpandedGroups() {
+    try { localStorage.setItem('bdc-groups-expanded', JSON.stringify([...expandedGroups])); } catch(e) {}
   }
 
   groups.forEach(gid => {
@@ -2264,7 +2264,7 @@ function renderSections(bar, terms) {
     if (!presets.length) return;
     totalVisible += presets.length;
 
-    const isCollapsed = collapsedGroups.has(gid) && !terms.length;
+    const isCollapsed = !expandedGroups.has(gid) && !terms.length;
 
     const hdr = document.createElement('div');
     hdr.className = 'preset-group-hdr' + (isCollapsed ? ' collapsed' : '');
@@ -2292,9 +2292,9 @@ function renderSections(bar, terms) {
       const nowCollapsed = !hdr.classList.contains('collapsed');
       hdr.classList.toggle('collapsed', nowCollapsed);
       rowsWrap.classList.toggle('collapsed', nowCollapsed);
-      if (nowCollapsed) collapsedGroups.add(gid);
-      else collapsedGroups.delete(gid);
-      saveCollapsedGroups();
+      if (nowCollapsed) expandedGroups.delete(gid);
+      else expandedGroups.add(gid);
+      saveExpandedGroups();
     });
 
     wrap.appendChild(hdr);
