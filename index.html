@@ -2019,6 +2019,7 @@ function makeChip(preset, allPresets) {
   }
 
   chip.addEventListener('click', () => {
+    stopPreview();
     document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     activeChip = preset.name;
